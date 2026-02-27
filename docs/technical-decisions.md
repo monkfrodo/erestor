@@ -142,3 +142,40 @@ Registro das decisões de arquitetura tomadas ao longo do desenvolvimento, com o
 - Seções manuais (`## Inbox processado`, `## Observações`) coexistem com seções automáticas
 - `--refresh` reconstrói partes automáticas sem apagar o que o Kevin preencheu manualmente
 - Transcripts JSONL do Claude Code contêm a granularidade maior — o log tem só o resumo útil
+
+---
+
+## Correções estruturais — 27/02/2026 (wave 1 + wave 2)
+
+14 fixes aplicados após varredura completa do código. Resumo das decisões:
+
+**Persistência de estado fora de /tmp**
+Arquivos que precisam sobreviver a restarts do LaunchAgent movidos para `HOME/` ou `PROD_DIR/logs/`:
+- `PROACTIVE_LOG` → `PROD_DIR/logs/proactive_sent.json`
+- `LAST_MSG_FILE` → `HOME/.erestor_last_msg`
+- `PENDING_CHANGE_FILE` → `HOME/.erestor_pending_change.json`
+- Backup do autoajuste → `HOME/.erestor_bot_backup.py`
+
+**Histórico de conversa**
+Aumentado de 5 para 10 trocas, timeout de 30min para 60min, truncamento de 300 para 500 chars. Kevin trabalha em múltiplos projetos em paralelo com pausas longas — contexto precisava durar mais.
+
+**AW offline ≠ AFK**
+`aw_now()` agora retorna `offline: True` quando ActivityWatch não responde. `aw_summary()` reporta "ActivityWatch offline" em vez de assumir AFK silenciosamente.
+
+**Filtro de apps utilitários do sistema**
+`AW_SYSTEM_APPS` criado. Force Quit, Spotlight, loginwindow, etc. não são reportados como sinal de trabalho real.
+
+**Whisper model cache**
+`_whisper_model` global — modelo carregado uma vez, reutilizado em todas as mensagens de voz. Elimina spike de 15-20s na primeira voz do dia.
+
+**Timer órfão em work/endwork**
+Timer com mais de 12h é detectado como órfão (bot crashou com timer ativo) — descartado com aviso em vez de criar evento fantasma no GCal.
+
+**Proativo não vira mensagem de erro**
+Timeout e erros do Claude filtrados antes de chegar no Kevin. NADA detection mais robusta.
+
+**GCal validação real**
+`gcal_create_event` valida `body.id` na resposta em vez de só `r.status`.
+
+**FEEDBACK_SIGNALS mais restrito**
+Palavras genéricas removidas ("para de", "silêncio", "cobrança") — só sinais inequívocos sobre o bot ativam o fluxo de autoajuste.
