@@ -290,6 +290,42 @@
   #send-btn {
     display: none;
   }
+
+  /* Mic button */
+  #mic-btn {
+    background: #2a2422;
+    border: 1px solid #4a3f3c;
+    border-radius: 6px;
+    color: #d4c4b8;
+    font-size: 16px;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+    padding: 0;
+    line-height: 1;
+  }
+
+  #mic-btn:hover {
+    border-color: #4a9f68;
+    background: #352e2c;
+  }
+
+  #mic-btn.recording {
+    background: #4a2020;
+    border-color: #c0392b;
+    color: #e74c3c;
+    animation: pulse-mic 1s ease-in-out infinite;
+  }
+
+  @keyframes pulse-mic {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
 </style>
 </head>
 <body>
@@ -315,6 +351,7 @@
 <div id="input-bar">
   <span class="prompt-symbol">~$</span>
   <textarea id="msg-input" rows="1" placeholder="mensagem..."></textarea>
+  <button id="mic-btn" title="Entrada por voz" style="display:none;">🎙</button>
 </div>
 
 <script>
@@ -330,11 +367,17 @@
       return '<pre><code>' + escapeHtml(code.trim()) + '</code></pre>';
     });
     // Inline code
-    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+    text = text.replace(/`([^`]+)`/g, function(_, code) {
+      return '<code>' + escapeHtml(code) + '</code>';
+    });
     // Bold
-    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    text = text.replace(/\*\*(.+?)\*\*/g, function(_, content) {
+      return '<strong>' + escapeHtml(content) + '</strong>';
+    });
     // Italic
-    text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    text = text.replace(/\*(.+?)\*/g, function(_, content) {
+      return '<em>' + escapeHtml(content) + '</em>';
+    });
     // Line breaks
     text = text.replace(/\n/g, '<br>');
     return text;
@@ -387,6 +430,8 @@
     msgInput.placeholder = enabled ? 'mensagem...' : 'aguardando...';
   }
 
+  let streamSafetyTimer = null;
+
   function beginStream(timestamp) {
     if (!hasMessages) {
       emptyState.style.display = 'none';
@@ -394,6 +439,14 @@
     }
     setInputEnabled(false);
     streamingText = '';
+
+    // Safety: if no finalizeStream within 120s, re-enable input
+    clearTimeout(streamSafetyTimer);
+    streamSafetyTimer = setTimeout(function() {
+      if (!msgInput.disabled) return;
+      setInputEnabled(true);
+      msgInput.focus();
+    }, 120000);
 
     streamingRow = document.createElement('div');
     streamingRow.className = 'msg-row assistant';
@@ -459,7 +512,9 @@
     // Safety: remove any lingering stream cursors from the entire DOM
     document.querySelectorAll('.stream-cursor').forEach(function(el) { el.remove(); });
 
+    clearTimeout(streamSafetyTimer);
     setInputEnabled(true);
+    setLoading(false);
     msgInput.focus();
     scrollToBottom();
   }
@@ -496,7 +551,7 @@
     content.style.borderLeft = '1px solid #4a9f68';
     content.style.color = '#4a9f68';
     content.style.paddingLeft = '18px';
-    content.innerHTML = text;
+    content.textContent = text;
     row.appendChild(content);
     messagesEl.insertBefore(row, loadingIndicator);
     scrollToBottom();
@@ -533,6 +588,9 @@
       handleSend();
     }
   });
+
+  // Dictation removed — Web Speech API not available in WKWebView.
+  // Future: implement via native Swift SFSpeechRecognizer bridge.
 </script>
 </body>
 </html>

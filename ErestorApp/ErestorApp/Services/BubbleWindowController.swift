@@ -39,7 +39,11 @@ class BubbleWindowController: ObservableObject {
 
     // MARK: - Setup
 
+    private var isSetup = false
+
     func setup(chatService: ChatService, actionHandler: ActionHandler) {
+        guard !isSetup else { return }
+        isSetup = true
         self.chatService = chatService
         self.actionHandler = actionHandler
         createBubblePanel()
@@ -139,7 +143,7 @@ class BubbleWindowController: ObservableObject {
         vc.coordinator = ChatWebViewVC.Coordinator(chatService: chatService)
         vc.loadView()
 
-        let webView = vc.webView!
+        guard let webView = vc.webView else { return }
         webView.frame = NSRect(x: 0, y: 0, width: chatWidth, height: chatHeight - headerHeight)
         webView.autoresizingMask = [.width, .height]
         container.addSubview(webView)
@@ -272,8 +276,8 @@ class BubbleWindowController: ObservableObject {
     // MARK: - Timer indicator (below bubble)
 
     private func createTimerPanel() {
-        let w: CGFloat = 52
-        let h: CGFloat = 70  // time + desc
+        let w: CGFloat = 140
+        let h: CGFloat = 72  // time + desc
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: w, height: h),
             styleMask: [.borderless, .nonactivatingPanel],
@@ -289,7 +293,7 @@ class BubbleWindowController: ObservableObject {
 
         let container = NSView(frame: NSRect(x: 0, y: 0, width: w, height: h))
 
-        // Time label (MM:SS)
+        // Time label (MM:SS or H:MM:SS)
         let timeLabel = NSTextField(labelWithString: "")
         timeLabel.font = NSFont.monospacedSystemFont(ofSize: 11, weight: .bold)
         timeLabel.textColor = NSColor(red: 0.29, green: 0.62, blue: 0.41, alpha: 1)
@@ -297,7 +301,7 @@ class BubbleWindowController: ObservableObject {
         timeLabel.isBezeled = false
         timeLabel.isEditable = false
         timeLabel.alignment = .center
-        timeLabel.frame = NSRect(x: -20, y: 20, width: w + 40, height: 16)
+        timeLabel.frame = NSRect(x: 0, y: 20, width: w, height: 16)
         container.addSubview(timeLabel)
 
         // Desc label (one word)
@@ -308,7 +312,7 @@ class BubbleWindowController: ObservableObject {
         descLabel.isBezeled = false
         descLabel.isEditable = false
         descLabel.alignment = .center
-        descLabel.frame = NSRect(x: -20, y: 4, width: w + 40, height: 14)
+        descLabel.frame = NSRect(x: 0, y: 4, width: w, height: 16)
         container.addSubview(descLabel)
 
         panel.contentView = container
@@ -363,22 +367,34 @@ class BubbleWindowController: ObservableObject {
                 let tsStr = try String(contentsOf: path, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
                 guard let ts = Double(tsStr) else { continue }
                 let elapsed = Int(Date().timeIntervalSince1970 - ts)
-                let mins = elapsed / 60
+                let hours = elapsed / 3600
+                let mins = (elapsed % 3600) / 60
                 let secs = elapsed % 60
-                timerLabel.stringValue = String(format: "%02d:%02d", mins, secs)
+                if hours > 0 {
+                    timerLabel.stringValue = String(format: "%d:%02d:%02d", hours, mins, secs)
+                } else {
+                    timerLabel.stringValue = String(format: "%02d:%02d", mins, secs)
+                }
 
                 let descPath = home.appendingPathComponent(file.replacingOccurrences(of: "_timer", with: "_desc"))
                 let desc = (try? String(contentsOf: descPath, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)) ?? ""
-                // First word only
-                let firstWord = desc.split(separator: " ").first.map(String.init) ?? desc
-                timerDescLabel?.stringValue = firstWord.lowercased()
+                // Pick shortest meaningful word (skip "&", "e", "de", etc.)
+                let words = desc.split(separator: " ").map(String.init)
+                    .filter { $0.count > 2 && $0 != "&" }
+                let shortWord = words.min(by: { $0.count < $1.count }) ?? words.first ?? desc
+                let label = shortWord.count > 8
+                    ? String(shortWord.prefix(6)) + "…"
+                    : shortWord
+                timerDescLabel?.stringValue = label.lowercased()
 
                 // Position below bubble, centered
                 let bubbleFrame = bubblePanel.frame
-                let x = bubbleFrame.midX - 26
+                let x = bubbleFrame.midX - 70
                 let y = bubbleFrame.minY - 44
                 timerPanel.setFrameOrigin(NSPoint(x: x, y: y))
-                timerPanel.orderFrontRegardless()
+                if !timerPanel.isVisible {
+                    timerPanel.orderFrontRegardless()
+                }
                 found = true
                 break
             } catch { continue }
@@ -395,10 +411,12 @@ class BubbleWindowController: ObservableObject {
                 timerDescLabel?.stringValue = truncated.lowercased()
 
                 let bubbleFrame = bubblePanel.frame
-                let x = bubbleFrame.midX - 26
+                let x = bubbleFrame.midX - 70
                 let y = bubbleFrame.minY - 44
                 timerPanel.setFrameOrigin(NSPoint(x: x, y: y))
-                timerPanel.orderFrontRegardless()
+                if !timerPanel.isVisible {
+                    timerPanel.orderFrontRegardless()
+                }
             } else {
                 timerPanel.orderOut(nil)
             }
@@ -543,7 +561,7 @@ class ResizeHandleView: NSView {
     }
 
     override func resetCursorRects() {
-        addCursorRect(bounds, cursor: .crosshair)
+        addCursorRect(bounds, cursor: .resizeUpDown)
     }
 
     override func mouseDown(with event: NSEvent) {
@@ -559,13 +577,10 @@ class ResizeHandleView: NSView {
 
         // Resize: width grows right, height grows down (origin moves)
         var newFrame = initialFrame
-        newFrame.size.width = max(window.minSize.width, initialFrame.width + dx)
-        newFrame.size.height = max(window.minSize.height, initialFrame.height - dy)
-        newFrame.origin.y = initialFrame.origin.y + dy
-
-        // Clamp to max
-        newFrame.size.width = min(window.maxSize.width, newFrame.size.width)
-        newFrame.size.height = min(window.maxSize.height, newFrame.size.height)
+        newFrame.size.width = max(window.minSize.width, min(window.maxSize.width, initialFrame.width + dx))
+        newFrame.size.height = max(window.minSize.height, min(window.maxSize.height, initialFrame.height - dy))
+        // Recalculate origin.y based on actual clamped height to prevent drift
+        newFrame.origin.y = initialFrame.origin.y + (initialFrame.height - newFrame.size.height)
 
         window.setFrame(newFrame, display: true)
     }

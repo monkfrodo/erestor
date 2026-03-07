@@ -3,7 +3,7 @@ import SwiftUI
 struct MenuBarView: View {
     @EnvironmentObject var chatService: ChatService
     @State private var quickInput = ""
-    @Environment(\.openWindow) private var openWindow
+@Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(spacing: 10) {

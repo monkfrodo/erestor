@@ -20,6 +20,7 @@ targets:
         CFBundleDisplayName: Erestor
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
+        NSAppleEventsUsageDescription: "Erestor precisa controlar apps como iTerm e Music."
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.integros.erestor

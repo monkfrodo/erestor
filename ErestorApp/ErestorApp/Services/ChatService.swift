@@ -16,19 +16,20 @@ class ChatService: ObservableObject {
     @Published var streamDelta: StreamDelta?
 
     private let baseURL = "http://127.0.0.1:8766"
-    private var streamTask: Task<Void, Never>?
-
     private var statusTimer: Timer?
 
     init() {
-        Task { await checkStatus() }
+        Task {
+            await checkStatus()
+            if serverOnline { await loadHistory() }
+        }
         // Recheck server status every 10s until online, then every 60s
         statusTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
                 await self.checkStatus()
-                // Once online, slow down polling
-                if self.serverOnline, self.statusTimer?.timeInterval != 60 {
+                // Once online with no failures, slow down polling
+                if self.serverOnline, self.consecutiveFailures == 0, self.statusTimer?.timeInterval != 60 {
                     self.statusTimer?.invalidate()
                     self.statusTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
                         Task { @MainActor in await self?.checkStatus() }
@@ -78,6 +79,7 @@ class ChatService: ObservableObject {
             serverOnline = true
             lastSuccessfulRequest = Date()
             var accumulated = ""
+            var pendingActions: [ChatAction] = []
 
             for try await line in bytes.lines {
                 // SSE format: lines starting with "data: " contain JSON
@@ -94,7 +96,7 @@ class ChatService: ObservableObject {
                             accumulated = fullResponse
                         }
                         if let responseActions = chunk.actions {
-                            actions = responseActions
+                            pendingActions = responseActions
                         }
                     } else if let chunkText = chunk.text {
                         // Intermediate token chunk
@@ -116,11 +118,18 @@ class ChatService: ObservableObject {
             )
             messages.append(botMsg)
 
-            // ALWAYS publish .finished -- even if the stream had no chunks or
-            // the done event was never received from the server
+            // ALWAYS publish .finished BEFORE actions -- this ensures
+            // finalizeStream() runs and re-enables the input field before
+            // any action (AppleScript, Process, etc.) can block the main thread.
             streamDelta = StreamDelta(kind: .finished, text: botMsg.text, timestamp: Self.currentTime())
             isLoading = false
             isStreaming = false
+
+            // Now publish actions -- observers will execute them after
+            // the stream UI has been fully finalized
+            if !pendingActions.isEmpty {
+                actions = pendingActions
+            }
 
         } catch {
             logger.error("Streaming failed: \(error.localizedDescription)")
@@ -182,20 +191,52 @@ class ChatService: ObservableObject {
     }
 
     private var lastSuccessfulRequest: Date = .distantPast
+    private var consecutiveFailures = 0
 
     func checkStatus() async {
         // Don't mark offline if we had a successful request in the last 30s
         let recentSuccess = Date().timeIntervalSince(lastSuccessfulRequest) < 30
         guard let url = URL(string: "\(baseURL)/status") else { return }
+
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 5
+
         do {
-            let (_, response) = try await URLSession.shared.data(from: url)
+            let (_, response) = try await URLSession.shared.data(for: request)
             if (response as? HTTPURLResponse)?.statusCode == 200 {
                 serverOnline = true
                 lastSuccessfulRequest = Date()
+                consecutiveFailures = 0
+                // Restore normal polling if we were in rapid 5s mode
+                if let interval = statusTimer?.timeInterval, interval < 10 {
+                    statusTimer?.invalidate()
+                    statusTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
+                        Task { @MainActor in
+                            guard let self else { return }
+                            await self.checkStatus()
+                            if self.serverOnline, self.consecutiveFailures == 0, self.statusTimer?.timeInterval != 60 {
+                                self.statusTimer?.invalidate()
+                                self.statusTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+                                    Task { @MainActor in await self?.checkStatus() }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         } catch {
-            if !recentSuccess {
+            consecutiveFailures += 1
+            // Only mark offline after 3 consecutive failures AND no recent success
+            // This prevents brief backend restarts from showing error to user
+            if consecutiveFailures >= 3 && !recentSuccess {
                 serverOnline = false
+                // Speed up polling to detect recovery faster
+                if statusTimer?.timeInterval != 5 {
+                    statusTimer?.invalidate()
+                    statusTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
+                        Task { @MainActor in await self?.checkStatus() }
+                    }
+                }
             }
         }
     }
@@ -208,6 +249,42 @@ class ChatService: ObservableObject {
         messages.removeAll()
     }
 
+    // MARK: - Load history from backend
+
+    func loadHistory() async {
+        guard let url = URL(string: "\(baseURL)/history") else { return }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 5
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else { return }
+
+            struct HistoryResponse: Codable {
+                let history: [[String: String]]
+            }
+
+            let decoded = try JSONDecoder().decode(HistoryResponse.self, from: data)
+            guard !decoded.history.isEmpty else { return }
+
+            var loaded: [ChatMessage] = []
+            for entry in decoded.history {
+                if let userText = entry["u"] {
+                    loaded.append(ChatMessage(role: .user, text: userText, timestamp: ""))
+                }
+                if let botText = entry["b"] {
+                    loaded.append(ChatMessage(role: .assistant, text: botText, timestamp: ""))
+                }
+            }
+            // Only populate if messages is still empty (avoid duplicates on re-call)
+            if messages.isEmpty {
+                messages = loaded
+            }
+        } catch {
+            logger.warning("Failed to load history: \(error.localizedDescription)")
+        }
+    }
+
     // MARK: - Helpers
 
     private func appendErrorMessage() {
@@ -218,7 +295,11 @@ class ChatService: ObservableObject {
         )
         messages.append(errorMsg)
         streamDelta = StreamDelta(kind: .finished, text: errorMsg.text, timestamp: errorMsg.timestamp)
-        serverOnline = false
+        // Respect the 3-consecutive-failures guard instead of instantly marking offline
+        consecutiveFailures += 1
+        if consecutiveFailures >= 3 {
+            serverOnline = false
+        }
         isLoading = false
         isStreaming = false
     }

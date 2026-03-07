@@ -60,11 +60,13 @@ struct ChatAction: Codable, Identifiable {
     let priority: String?
     let category: String?
     let timerType: String?
+    let startedAt: String?
 
     enum CodingKeys: String, CodingKey {
         case type, text, at, path, url
         case name, cmd, desc, title, calendar, date, start, end
         case priority, category
         case timerType = "timer_type"
+        case startedAt = "started_at"
     }
 }

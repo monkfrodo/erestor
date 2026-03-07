@@ -6,11 +6,22 @@ import os
 private let logger = Logger(subsystem: "org.integros.erestor", category: "ActionHandler")
 
 @MainActor
-class ActionHandler: ObservableObject {
+class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
     static let shared = ActionHandler()
 
-    private init() {
+    private override init() {
+        super.init()
+        UNUserNotificationCenter.current().delegate = self
         requestNotificationPermission()
+    }
+
+    // Show notifications even when app is in foreground (LSUIElement)
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound])
     }
 
     // MARK: - Execute actions from Claude response
@@ -35,14 +46,20 @@ class ActionHandler: ObservableObject {
         "timer_start": "timer iniciado",
         "timer_stop": "timer parado",
         "gcal_create": "evento criado",
+        "gcal_update": "evento atualizado",
         "create_task": "tarefa criada",
         "complete_task": "tarefa concluída",
         "web_search": "busca aberta",
+        "music_toggle": "música play/pause",
+        "music_next": "próxima faixa",
+        "music_prev": "faixa anterior",
+        "screenshot": "screenshot capturado",
     ]
 
     func execute(_ actions: [ChatAction]) {
         for action in actions {
-            if let label = Self.actionLabels[action.type] {
+            // Screenshot handles its own feedback after completion
+            if action.type != "screenshot", let label = Self.actionLabels[action.type] {
                 let detail = action.desc ?? action.title ?? action.text ?? action.name ?? ""
                 let msg = detail.isEmpty ? "✓ \(label)" : "✓ \(label): \(detail)"
                 showFeedback(msg)
@@ -63,7 +80,7 @@ class ActionHandler: ObservableObject {
             case "shell":
                 runShell(cmd: action.cmd ?? "")
             case "timer_start":
-                startTimer(timerType: action.timerType ?? "work", desc: action.desc ?? "")
+                startTimer(timerType: action.timerType ?? "work", desc: action.desc ?? "", startedAt: action.startedAt)
             case "timer_stop":
                 stopTimer(timerType: action.timerType ?? "work")
             case "gcal_create":
@@ -71,6 +88,13 @@ class ActionHandler: ObservableObject {
                     title: action.title ?? "",
                     calendar: action.calendar ?? "trabalho",
                     date: action.date ?? "",
+                    start: action.start ?? "",
+                    end: action.end ?? ""
+                )
+            case "gcal_update":
+                updateCalendarEvent(
+                    title: action.title ?? "",
+                    calendar: action.calendar ?? "trabalho",
                     start: action.start ?? "",
                     end: action.end ?? ""
                 )
@@ -85,6 +109,15 @@ class ActionHandler: ObservableObject {
                 completeTask(title: action.title ?? "")
             case "web_search":
                 webSearch(query: action.text ?? "")
+            case "music_toggle":
+                musicControl(action: "playpause")
+            case "music_next":
+                musicControl(action: "next track")
+            case "music_prev":
+                musicControl(action: "previous track")
+            case "screenshot":
+                // Don't show feedback before screencapture completes — it's interactive
+                captureScreenshot()
             default:
                 logger.warning("Unknown action type: \(action.type)")
             }
@@ -160,11 +193,14 @@ class ActionHandler: ObservableObject {
         end tell
         """
 
-        if let appleScript = NSAppleScript(source: script) {
-            var error: NSDictionary?
-            appleScript.executeAndReturnError(&error)
-            if let error {
-                logger.error("AppleScript error: \(error)")
+        // Run AppleScript off the main thread to avoid blocking UI/streaming
+        DispatchQueue.global(qos: .userInitiated).async {
+            if let appleScript = NSAppleScript(source: script) {
+                var error: NSDictionary?
+                appleScript.executeAndReturnError(&error)
+                if let error {
+                    logger.error("AppleScript error: \(error)")
+                }
             }
         }
     }
@@ -227,8 +263,12 @@ class ActionHandler: ObservableObject {
 
     // MARK: - Timer
 
-    func startTimer(timerType: String, desc: String) {
-        callBackendEndpoint("/timer/start", body: ["type": timerType, "desc": desc])
+    func startTimer(timerType: String, desc: String, startedAt: String? = nil) {
+        var body = ["type": timerType, "desc": desc]
+        if let startedAt, !startedAt.isEmpty {
+            body["started_at"] = startedAt
+        }
+        callBackendEndpoint("/timer/start", body: body)
     }
 
     func stopTimer(timerType: String) {
@@ -241,6 +281,13 @@ class ActionHandler: ObservableObject {
         callBackendEndpoint("/gcal/create", body: [
             "title": title, "calendar": calendar, "date": date, "start": start, "end": end
         ])
+    }
+
+    func updateCalendarEvent(title: String, calendar: String, start: String, end: String) {
+        var body = ["title": title, "calendar": calendar]
+        if !start.isEmpty { body["start"] = start }
+        if !end.isEmpty { body["end"] = end }
+        callBackendEndpoint("/gcal/update", body: body)
     }
 
     // MARK: - Tasks
@@ -267,6 +314,78 @@ class ActionHandler: ObservableObject {
         }
         NSWorkspace.shared.open(url)
         logger.info("Web search: \(query)")
+    }
+
+    // MARK: - Music Control
+
+    func musicControl(action: String) {
+        // Detect which music app is running (safe on main thread — just reads a list)
+        let runningApps = NSWorkspace.shared.runningApplications
+        let musicRunning = runningApps.contains { $0.bundleIdentifier == "com.apple.Music" }
+        let spotifyRunning = runningApps.contains { $0.bundleIdentifier == "com.spotify.client" }
+
+        let appName: String
+        if spotifyRunning {
+            appName = "Spotify"
+        } else if musicRunning {
+            appName = "Music"
+        } else {
+            // Default to Music — it will launch if needed
+            appName = "Music"
+        }
+
+        let script = """
+        tell application "\(appName)" to \(action)
+        """
+
+        // Run AppleScript off the main thread to avoid blocking UI/streaming
+        DispatchQueue.global(qos: .userInitiated).async {
+            if let appleScript = NSAppleScript(source: script) {
+                var error: NSDictionary?
+                appleScript.executeAndReturnError(&error)
+                if let error {
+                    logger.error("Music control error (\(appName)): \(error)")
+                } else {
+                    logger.info("Music control: \(action) on \(appName)")
+                }
+            }
+        }
+    }
+
+    // MARK: - Screenshot
+
+    func captureScreenshot() {
+        let timestamp = ISO8601DateFormatter().string(from: Date())
+            .replacingOccurrences(of: ":", with: "-")
+        let filename = "erestor-screenshot-\(timestamp).png"
+        let desktopPath = ("~/Desktop" as NSString).expandingTildeInPath
+        let filePath = "\(desktopPath)/\(filename)"
+
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
+        task.arguments = ["-i", filePath]
+        task.terminationHandler = { [weak self] process in
+            DispatchQueue.main.async {
+                if process.terminationStatus != 0 {
+                    self?.showFeedback("✗ screenshot cancelado")
+                    return
+                }
+                guard FileManager.default.fileExists(atPath: filePath) else {
+                    self?.showFeedback("✗ screenshot cancelado")
+                    logger.info("Screenshot cancelled by user")
+                    return
+                }
+                NSWorkspace.shared.open(URL(fileURLWithPath: filePath))
+                self?.showFeedback("✓ screenshot salvo")
+                logger.info("Screenshot saved and opened: \(filePath)")
+            }
+        }
+        do {
+            try task.run()
+            logger.info("screencapture launched (interactive selection)")
+        } catch {
+            logger.error("screencapture failed to launch: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Backend Helper
