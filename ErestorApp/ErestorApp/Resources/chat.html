@@ -425,9 +425,10 @@
    * with a blinking cursor, ready to receive token chunks.
    */
   function setInputEnabled(enabled) {
-    msgInput.disabled = !enabled;
-    msgInput.style.opacity = enabled ? '1' : '0.4';
-    msgInput.placeholder = enabled ? 'mensagem...' : 'aguardando...';
+    // Never disable the input — always let the user type
+    msgInput.disabled = false;
+    msgInput.style.opacity = '1';
+    msgInput.placeholder = enabled ? 'mensagem...' : 'respondendo...';
   }
 
   let streamSafetyTimer = null;

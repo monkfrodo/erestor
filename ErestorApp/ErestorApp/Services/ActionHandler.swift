@@ -56,10 +56,17 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
         "screenshot": "screenshot capturado",
     ]
 
+    // Actions that call backend and need deferred feedback
+    private static let backendActions: Set<String> = [
+        "gcal_create", "gcal_update", "create_task", "complete_task",
+        "timer_start", "timer_stop"
+    ]
+
     func execute(_ actions: [ChatAction]) {
         for action in actions {
-            // Screenshot handles its own feedback after completion
-            if action.type != "screenshot", let label = Self.actionLabels[action.type] {
+            // Backend actions show feedback after completion; others show immediately
+            if action.type != "screenshot" && !Self.backendActions.contains(action.type),
+               let label = Self.actionLabels[action.type] {
                 let detail = action.desc ?? action.title ?? action.text ?? action.name ?? ""
                 let msg = detail.isEmpty ? "✓ \(label)" : "✓ \(label): \(detail)"
                 showFeedback(msg)
@@ -268,11 +275,11 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
         if let startedAt, !startedAt.isEmpty {
             body["started_at"] = startedAt
         }
-        callBackendEndpoint("/timer/start", body: body)
+        callBackendEndpoint("/timer/start", body: body, actionType: "timer_start")
     }
 
     func stopTimer(timerType: String) {
-        callBackendEndpoint("/timer/stop", body: ["type": timerType])
+        callBackendEndpoint("/timer/stop", body: ["type": timerType], actionType: "timer_stop")
     }
 
     // MARK: - Google Calendar
@@ -280,14 +287,14 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
     func createCalendarEvent(title: String, calendar: String, date: String, start: String, end: String) {
         callBackendEndpoint("/gcal/create", body: [
             "title": title, "calendar": calendar, "date": date, "start": start, "end": end
-        ])
+        ], actionType: "gcal_create")
     }
 
     func updateCalendarEvent(title: String, calendar: String, start: String, end: String) {
         var body = ["title": title, "calendar": calendar]
         if !start.isEmpty { body["start"] = start }
         if !end.isEmpty { body["end"] = end }
-        callBackendEndpoint("/gcal/update", body: body)
+        callBackendEndpoint("/gcal/update", body: body, actionType: "gcal_update")
     }
 
     // MARK: - Tasks
@@ -295,11 +302,11 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
     func createTask(title: String, priority: String, due: String, category: String) {
         callBackendEndpoint("/task/create", body: [
             "title": title, "priority": priority, "due": due, "category": category
-        ])
+        ], actionType: "create_task")
     }
 
     func completeTask(title: String) {
-        callBackendEndpoint("/task/complete", body: ["title": title])
+        callBackendEndpoint("/task/complete", body: ["title": title], actionType: "complete_task")
     }
 
     // MARK: - Web Search
@@ -390,7 +397,7 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
 
     // MARK: - Backend Helper
 
-    private func callBackendEndpoint(_ path: String, body: [String: String]) {
+    private func callBackendEndpoint(_ path: String, body: [String: String], actionType: String? = nil) {
         let baseURL = "http://127.0.0.1:8766"
         guard let url = URL(string: "\(baseURL)\(path)") else {
             logger.error("Invalid backend URL for path: \(path)")
@@ -400,11 +407,30 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONEncoder().encode(body)
-        URLSession.shared.dataTask(with: request) { [path] data, response, error in
+        URLSession.shared.dataTask(with: request) { [weak self, path, actionType] data, response, error in
+            let httpStatus = (response as? HTTPURLResponse)?.statusCode ?? 0
+            let success = error == nil && (200..<300).contains(httpStatus)
+
             if let error {
                 logger.error("Backend call \(path) failed: \(error.localizedDescription)")
+            } else if !success {
+                let errorMsg = data.flatMap({ try? JSONDecoder().decode([String: String].self, from: $0) })?["error"] ?? "erro desconhecido"
+                logger.error("Backend call \(path) returned \(httpStatus): \(errorMsg)")
             } else {
                 logger.info("Backend call \(path) succeeded")
+            }
+
+            // Show deferred feedback for backend actions
+            if let actionType, let label = Self.actionLabels[actionType] {
+                DispatchQueue.main.async {
+                    let detail = body["title"] ?? body["desc"] ?? body["type"] ?? ""
+                    if success {
+                        let msg = detail.isEmpty ? "✓ \(label)" : "✓ \(label): \(detail)"
+                        self?.showFeedback(msg)
+                    } else {
+                        self?.showFeedback("✗ falha: \(label)")
+                    }
+                }
             }
         }.resume()
     }
