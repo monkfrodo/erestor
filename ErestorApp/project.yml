@@ -11,6 +11,15 @@ targets:
     platform: macOS
     sources:
       - ErestorApp
+    dependencies:
+      - sdk: Carbon.framework
+    info:
+      path: ErestorApp/Info.plist
+      properties:
+        LSUIElement: true
+        CFBundleDisplayName: Erestor
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.integros.erestor
@@ -18,9 +27,6 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "5.9"
         CODE_SIGN_ENTITLEMENTS: ErestorApp/ErestorApp.entitlements
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_LSUIElement: false
-        INFOPLIST_KEY_CFBundleDisplayName: Erestor
         MACOSX_DEPLOYMENT_TARGET: "26.0"
         CODE_SIGN_IDENTITY: "-"
     entitlements:

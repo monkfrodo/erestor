@@ -8,11 +8,11 @@
 
   html, body {
     height: 100%;
-    background: transparent;
+    background: #2a2422;
     font-family: "SF Mono", "Menlo", "Fira Code", monospace;
     font-size: 13px;
     -webkit-font-smoothing: antialiased;
-    color: #a0a0a0;
+    color: #d4c4b8;
   }
 
   body {
@@ -33,10 +33,10 @@
   #messages::-webkit-scrollbar { width: 4px; }
   #messages::-webkit-scrollbar-track { background: transparent; }
   #messages::-webkit-scrollbar-thumb {
-    background: #1e1e24;
+    background: #4a3f3c;
     border-radius: 2px;
   }
-  #messages::-webkit-scrollbar-thumb:hover { background: #2a2a32; }
+  #messages::-webkit-scrollbar-thumb:hover { background: #5a4f4c; }
 
   /* Empty state */
   #empty-state {
@@ -67,7 +67,7 @@
 
   #empty-state .subtitle {
     font-size: 11px;
-    color: #333;
+    color: #7a6e66;
   }
 
   .capabilities {
@@ -82,8 +82,8 @@
   .cap-chip {
     font-size: 10px;
     padding: 3px 10px;
-    border: 1px solid #1a1a20;
-    color: #3a3a42;
+    border: 1px solid #4a3f3c;
+    color: #7a6e66;
     font-family: inherit;
     letter-spacing: 0.5px;
   }
@@ -109,7 +109,7 @@
 
   /* User prompt */
   .msg-row.user .msg-content {
-    color: #c0c0c0;
+    color: #e8dcd2;
   }
 
   .msg-row.user .msg-content::before {
@@ -120,14 +120,14 @@
 
   /* Assistant response */
   .msg-row.assistant .msg-content {
-    color: #888;
+    color: #b0a498;
     padding-left: 18px;
-    border-left: 1px solid #1a1a20;
+    border-left: 1px solid #4a3f3c;
   }
 
   .timestamp {
     font-size: 9px;
-    color: #2a2a32;
+    color: #5a4f4c;
     font-family: inherit;
     flex-shrink: 0;
     padding-top: 5px;
@@ -137,7 +137,7 @@
   /* Markdown */
   .msg-content strong {
     font-weight: 600;
-    color: #c8c8c8;
+    color: #e8dcd2;
   }
 
   .msg-content em {
@@ -148,22 +148,22 @@
   .msg-content code {
     font-family: inherit;
     font-size: 12px;
-    background: #111114;
+    background: #1e1816;
     padding: 1px 5px;
-    border: 1px solid #1a1a20;
+    border: 1px solid #4a3f3c;
     color: #d4a06a;
   }
 
   .msg-content pre {
-    background: #0d0d10;
-    border: 1px solid #1a1a20;
+    background: #1e1816;
+    border: 1px solid #4a3f3c;
     padding: 10px 12px;
     margin: 6px 0;
     overflow-x: auto;
     font-family: inherit;
     font-size: 12px;
     line-height: 1.5;
-    color: #7a7a82;
+    color: #b0a498;
   }
 
   .msg-content pre code {
@@ -190,14 +190,14 @@
   .loading-row {
     display: none;
     padding-left: 18px;
-    border-left: 1px solid #1a1a20;
+    border-left: 1px solid #4a3f3c;
     margin-top: 6px;
   }
 
   .loading-row.visible { display: block; }
 
   .loading-text {
-    color: #2a2a32;
+    color: #7a6e66;
     font-size: 12px;
   }
 
@@ -247,12 +247,12 @@
 
   /* Input area */
   #input-bar {
-    padding: 10px 16px 14px 16px;
-    border-top: 1px solid #111114;
+    padding: 10px 14px 12px 14px;
+    border-top: 1px solid #4a3f3c;
     display: flex;
     gap: 10px;
     align-items: flex-end;
-    background: transparent;
+    background: #352e2c;
   }
 
   .prompt-symbol {
@@ -266,12 +266,13 @@
 
   #msg-input {
     flex: 1;
-    background: transparent;
-    border: none;
-    padding: 6px 0;
+    background: #2a2422;
+    border: 1px solid #4a3f3c;
+    border-radius: 6px;
+    padding: 8px 10px;
     font-size: 13px;
     font-family: inherit;
-    color: #c0c0c0;
+    color: #e8dcd2;
     outline: none;
     resize: none;
     max-height: 100px;
@@ -279,7 +280,12 @@
     caret-color: #4a9f68;
   }
 
-  #msg-input::placeholder { color: #2a2a32; }
+  #msg-input:focus {
+    border-color: #4a9f68;
+    background: #241e1c;
+  }
+
+  #msg-input::placeholder { color: #6a5e56; }
 
   #send-btn {
     display: none;
@@ -351,7 +357,7 @@
 
     const content = document.createElement('div');
     content.className = 'msg-content';
-    content.innerHTML = renderMarkdown(text);
+    content.innerHTML = renderMarkdown(stripActions(text));
 
     const ts = document.createElement('div');
     ts.className = 'timestamp';
@@ -375,11 +381,18 @@
    * Called when streaming starts. Creates the assistant message container
    * with a blinking cursor, ready to receive token chunks.
    */
+  function setInputEnabled(enabled) {
+    msgInput.disabled = !enabled;
+    msgInput.style.opacity = enabled ? '1' : '0.4';
+    msgInput.placeholder = enabled ? 'mensagem...' : 'aguardando...';
+  }
+
   function beginStream(timestamp) {
     if (!hasMessages) {
       emptyState.style.display = 'none';
       hasMessages = true;
     }
+    setInputEnabled(false);
     streamingText = '';
 
     streamingRow = document.createElement('div');
@@ -403,10 +416,19 @@
    * Called for each token chunk during streaming.
    * Accumulates raw text and re-renders full markdown with cursor.
    */
+  function stripActions(text) {
+    // Remove complete action tags
+    text = text.replace(/\[ACTION:\w+\|[^\]]*\]/g, '');
+    // Remove partial/incomplete action tags at the end (split across chunks)
+    text = text.replace(/\[ACTION:[^\]]*$/g, '');
+    return text.trim();
+  }
+
   function appendStreamChunk(text) {
     if (!streamingContent) return;
     streamingText += text;
-    streamingContent.innerHTML = renderMarkdown(streamingText) + '<span class="stream-cursor"></span>';
+    var display = stripActions(streamingText);
+    streamingContent.innerHTML = renderMarkdown(display) + '<span class="stream-cursor"></span>';
 
     // Throttled scroll -- avoid layout thrashing on every token
     if (!streamScrollRAF) {
@@ -423,7 +445,7 @@
    */
   function finalizeStream(fullText, timestamp) {
     if (streamingContent) {
-      streamingContent.innerHTML = renderMarkdown(fullText);
+      streamingContent.innerHTML = renderMarkdown(stripActions(fullText));
     }
     if (streamingTimestamp && timestamp) {
       streamingTimestamp.textContent = '[' + timestamp + ']';
@@ -433,6 +455,12 @@
     streamingTimestamp = null;
     streamingText = '';
     streamScrollRAF = null;
+
+    // Safety: remove any lingering stream cursors from the entire DOM
+    document.querySelectorAll('.stream-cursor').forEach(function(el) { el.remove(); });
+
+    setInputEnabled(true);
+    msgInput.focus();
     scrollToBottom();
   }
 
@@ -456,6 +484,22 @@
     streamingText = '';
     streamScrollRAF = null;
     setLoading(false);
+  }
+
+  function showActionFeedback(text) {
+    const row = document.createElement('div');
+    row.className = 'msg-row assistant';
+    row.style.opacity = '0.5';
+    row.style.fontSize = '11px';
+    const content = document.createElement('div');
+    content.className = 'msg-content';
+    content.style.borderLeft = '1px solid #4a9f68';
+    content.style.color = '#4a9f68';
+    content.style.paddingLeft = '18px';
+    content.innerHTML = text;
+    row.appendChild(content);
+    messagesEl.insertBefore(row, loadingIndicator);
+    scrollToBottom();
   }
 
   function scrollToBottom() {

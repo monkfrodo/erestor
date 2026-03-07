@@ -19,6 +19,7 @@ struct ContextSummary: Codable {
     let timestamp: String?
     let p1Tasks: [String]?
     let nextEvent: NextEvent?
+    let currentEvent: NextEvent?
     let briefing: String?
 
     struct TimerInfo: Codable {
@@ -37,6 +38,7 @@ struct ContextSummary: Codable {
         case snapshot, gcal, timer, timestamp, briefing
         case p1Tasks = "p1_tasks"
         case nextEvent = "next_event"
+        case currentEvent = "current_event"
     }
 }
 
@@ -47,8 +49,22 @@ struct ChatAction: Codable, Identifiable {
     let at: String?
     let path: String?
     let url: String?
+    let name: String?
+    let cmd: String?
+    let desc: String?
+    let title: String?
+    let calendar: String?
+    let date: String?
+    let start: String?
+    let end: String?
+    let priority: String?
+    let category: String?
+    let timerType: String?
 
     enum CodingKeys: String, CodingKey {
         case type, text, at, path, url
+        case name, cmd, desc, title, calendar, date, start, end
+        case priority, category
+        case timerType = "timer_type"
     }
 }

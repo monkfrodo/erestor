@@ -3,32 +3,43 @@ import SwiftUI
 @main
 struct ErestorApp: App {
     @StateObject private var chatService = ChatService()
+    @StateObject private var actionHandler = ActionHandler.shared
 
     var body: some Scene {
-        // Main window
+        // Invisible settings window (required — SwiftUI needs at least one Scene)
         Window("Erestor", id: "main") {
-            HSplitView {
-                SidebarView()
-                    .frame(width: 190)
+            Color.clear
+                .frame(width: 0, height: 0)
+                .task {
+                    await chatService.loadContext()
 
-                ChatWebViewVC()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .environmentObject(chatService)
-            .frame(minWidth: 460, minHeight: 550)
-            .background(Color(hex: "#0a0a0c").opacity(0.95))
-            .transparentWindow()
-            .task {
-                await chatService.loadContext()
-            }
+                    // Setup floating bubble + chat panel
+                    let bubble = BubbleWindowController.shared
+                    bubble.setup(chatService: chatService, actionHandler: actionHandler)
+
+                    // Global hotkey toggles chat
+                    GlobalHotkey.shared.register {
+                        DispatchQueue.main.async {
+                            NSApp.activate(ignoringOtherApps: true)
+                            BubbleWindowController.shared.toggleChat()
+                        }
+                    }
+
+                    // Hide the invisible placeholder window
+                    DispatchQueue.main.async {
+                        for window in NSApp.windows where window.identifier?.rawValue == "main" {
+                            window.orderOut(nil)
+                        }
+                    }
+                }
         }
-        .defaultSize(width: 560, height: 680)
+        .defaultSize(width: 1, height: 1)
         .windowStyle(.hiddenTitleBar)
 
-        // Menu bar
-        MenuBarExtra("Erestor", systemImage: "brain.head.profile") {
+        MenuBarExtra("Erestor", image: "MenuBarIcon") {
             MenuBarView()
                 .environmentObject(chatService)
+                .environmentObject(actionHandler)
         }
         .menuBarExtraStyle(.window)
     }

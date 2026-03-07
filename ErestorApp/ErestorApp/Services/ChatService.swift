@@ -18,8 +18,24 @@ class ChatService: ObservableObject {
     private let baseURL = "http://127.0.0.1:8766"
     private var streamTask: Task<Void, Never>?
 
+    private var statusTimer: Timer?
+
     init() {
         Task { await checkStatus() }
+        // Recheck server status every 10s until online, then every 60s
+        statusTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                await self.checkStatus()
+                // Once online, slow down polling
+                if self.serverOnline, self.statusTimer?.timeInterval != 60 {
+                    self.statusTimer?.invalidate()
+                    self.statusTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+                        Task { @MainActor in await self?.checkStatus() }
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Streaming send (SSE)
@@ -31,6 +47,7 @@ class ChatService: ObservableObject {
             timestamp: Self.currentTime()
         )
         messages.append(userMsg)
+        actions = []
         isLoading = true
         isStreaming = true
         streamDelta = StreamDelta(kind: .started, text: "", timestamp: Self.currentTime())
@@ -58,6 +75,8 @@ class ChatService: ObservableObject {
                 return
             }
 
+            serverOnline = true
+            lastSuccessfulRequest = Date()
             var accumulated = ""
 
             for try await line in bytes.lines {
@@ -92,12 +111,14 @@ class ChatService: ObservableObject {
             let finalText = accumulated.trimmingCharacters(in: .whitespacesAndNewlines)
             let botMsg = ChatMessage(
                 role: .assistant,
-                text: finalText,
+                text: finalText.isEmpty ? "..." : finalText,
                 timestamp: Self.currentTime()
             )
             messages.append(botMsg)
 
-            streamDelta = StreamDelta(kind: .finished, text: finalText, timestamp: Self.currentTime())
+            // ALWAYS publish .finished -- even if the stream had no chunks or
+            // the done event was never received from the server
+            streamDelta = StreamDelta(kind: .finished, text: botMsg.text, timestamp: Self.currentTime())
             isLoading = false
             isStreaming = false
 
@@ -116,6 +137,7 @@ class ChatService: ObservableObject {
             timestamp: Self.currentTime()
         )
         messages.append(userMsg)
+        actions = []
         isLoading = true
 
         defer { isLoading = false }
@@ -159,13 +181,22 @@ class ChatService: ObservableObject {
         }
     }
 
+    private var lastSuccessfulRequest: Date = .distantPast
+
     func checkStatus() async {
+        // Don't mark offline if we had a successful request in the last 30s
+        let recentSuccess = Date().timeIntervalSince(lastSuccessfulRequest) < 30
         guard let url = URL(string: "\(baseURL)/status") else { return }
         do {
             let (_, response) = try await URLSession.shared.data(from: url)
-            serverOnline = (response as? HTTPURLResponse)?.statusCode == 200
+            if (response as? HTTPURLResponse)?.statusCode == 200 {
+                serverOnline = true
+                lastSuccessfulRequest = Date()
+            }
         } catch {
-            serverOnline = false
+            if !recentSuccess {
+                serverOnline = false
+            }
         }
     }
 

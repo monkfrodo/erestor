@@ -64,6 +64,19 @@ struct ChatWebViewVC: NSViewControllerRepresentable {
             coordinator.streamFinishedMessageCount = 0
         }
 
+        // --- Safety: if streaming just ended, always call finalizeStream as cleanup ---
+        if coordinator.wasStreaming && !chatService.isStreaming {
+            // Streaming transitioned from true → false. Ensure the WebView cursor is removed.
+            // This covers cases where the .finished delta was missed or not yet processed.
+            let lastMsg = messages.last
+            let finalText = lastMsg?.role == .assistant ? Self.escapeForJS(lastMsg!.text) : ""
+            let finalTs = lastMsg?.timestamp ?? ""
+            webView.evaluateJavaScript("finalizeStream(\"\(finalText)\", \"\(finalTs)\")")
+            coordinator.streamFinishedMessageCount = messages.count
+            coordinator.renderedCount = messages.count
+        }
+        coordinator.wasStreaming = chatService.isStreaming
+
         // --- Loading indicator (only for non-streaming requests) ---
         if isLoading != coordinator.lastLoadingState {
             // During streaming, we use the stream cursor instead of the loading indicator
@@ -99,7 +112,7 @@ struct ChatWebViewVC: NSViewControllerRepresentable {
         }
     }
 
-    // MARK: - JS string escaping
+    // MARK: - JS string escaping (used by BubbleWindowController too)
 
     static func escapeForJS(_ text: String) -> String {
         text
@@ -118,6 +131,7 @@ struct ChatWebViewVC: NSViewControllerRepresentable {
         var lastLoadingState = false
         var lastStreamDeltaID: UUID?
         var streamFinishedMessageCount = 0
+        var wasStreaming = false
 
         init(chatService: ChatService) {
             self.chatService = chatService
