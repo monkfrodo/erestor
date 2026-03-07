@@ -1,0 +1,27 @@
+name: ErestorApp
+options:
+  bundleIdPrefix: org.integros
+  deploymentTarget:
+    macOS: "26.0"
+  xcodeVersion: "16.0"
+
+targets:
+  ErestorApp:
+    type: application
+    platform: macOS
+    sources:
+      - ErestorApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.integros.erestor
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.9"
+        CODE_SIGN_ENTITLEMENTS: ErestorApp/ErestorApp.entitlements
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSUIElement: false
+        INFOPLIST_KEY_CFBundleDisplayName: Erestor
+        MACOSX_DEPLOYMENT_TARGET: "26.0"
+        CODE_SIGN_IDENTITY: "-"
+    entitlements:
+      path: ErestorApp/ErestorApp.entitlements
