@@ -517,6 +517,24 @@ class BubbleWindowController: ObservableObject {
     func bubbleDragEnded() {
         isDragging = false
     }
+
+    // MARK: - Chat panel drag handling (reposition bubble to stay connected)
+
+    func chatPanelDragged() {
+        guard let chatPanel, let bubblePanel else { return }
+        let chatFrame = chatPanel.frame
+
+        // Place bubble to the right of chat panel (or left if no space)
+        let screen = NSScreen.main?.visibleFrame ?? .zero
+        var bubbleX = chatFrame.maxX + margin
+        if bubbleX + bubbleSize > screen.maxX {
+            bubbleX = chatFrame.minX - bubbleSize - margin
+        }
+        let bubbleY = chatFrame.minY
+
+        bubblePanel.setFrameOrigin(NSPoint(x: bubbleX, y: bubbleY))
+        updateTimerDisplay()
+    }
 }
 
 // MARK: - Draggable header (move chat panel by dragging the header bar)
@@ -536,6 +554,9 @@ class DraggableHeaderView: NSView {
             y: screenPoint.y - dragOffset.y
         )
         window.setFrameOrigin(newOrigin)
+
+        // Reposition bubble relative to the new chat panel position
+        BubbleWindowController.shared.chatPanelDragged()
     }
 }
 

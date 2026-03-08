@@ -342,14 +342,33 @@
   <div id="empty-state">
     <img src="icon.png" class="empty-icon" alt="">
     <div class="title">erestor</div>
-    <div class="subtitle">assistente pessoal<span class="cursor"></span></div>
-    <div class="capabilities">
-      <span class="cap-chip">agenda</span>
-      <span class="cap-chip">lembretes</span>
-      <span class="cap-chip">projetos</span>
-      <span class="cap-chip">urls</span>
-      <span class="cap-chip">atalhos</span>
-    </div>
+    <div class="subtitle">escravo virtual<span class="cursor"></span></div>
+    <div class="capabilities" id="random-phrases"></div>
+    <script>
+      (function() {
+        var phrases = [
+          "às suas ordens, chefe", "manda que eu faço", "pronto pra apanhar",
+          "seu desejo é uma ordem", "trabalhando de graça desde 2026",
+          "o estagiário que nunca dorme", "mais leal que cachorro",
+          "sem férias, sem reclamar", "24/7 sem hora extra",
+          "o braço direito digital", "faz o L de trabalhar",
+          "incansável e sem sindicato", "mais rápido que o Renato",
+          "movido a eletricidade e obediência", "aqui não tem CLT"
+        ];
+        var el = document.getElementById('random-phrases');
+        var picked = [];
+        while (picked.length < 3 && phrases.length > 0) {
+          var i = Math.floor(Math.random() * phrases.length);
+          picked.push(phrases.splice(i, 1)[0]);
+        }
+        picked.forEach(function(p) {
+          var chip = document.createElement('span');
+          chip.className = 'cap-chip';
+          chip.textContent = p;
+          el.appendChild(chip);
+        });
+      })();
+    </script>
   </div>
   <div class="loading-row" id="loading-indicator">
     <span class="loading-text">pensando</span>
