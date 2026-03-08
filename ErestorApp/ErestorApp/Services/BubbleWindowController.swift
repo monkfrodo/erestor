@@ -31,9 +31,11 @@ class BubbleWindowController: ObservableObject {
 
     private var isDragging = false
     private var dragOffset: NSPoint = .zero
+    private var bubbleWatchdogTask: Task<Void, Never>?
 
     deinit {
         timerPollTask?.cancel()
+        bubbleWatchdogTask?.cancel()
     }
 
     private init() {}
@@ -52,6 +54,7 @@ class BubbleWindowController: ObservableObject {
         createTimerPanel()
         observeStreaming()
         startTimerPolling()
+        startBubbleWatchdog()
     }
 
     // MARK: - Bubble Panel
@@ -417,6 +420,46 @@ class BubbleWindowController: ObservableObject {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    // MARK: - Bubble watchdog (ensure bubble never disappears)
+
+    private func startBubbleWatchdog() {
+        // Also re-show bubble on workspace/display changes
+        let nc = NSWorkspace.shared.notificationCenter
+        nc.addObserver(forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.ensureBubbleVisible()
+        }
+        NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.ensureBubbleVisible()
+        }
+
+        // Periodic check every 5s — if bubble is not visible, bring it back
+        bubbleWatchdogTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                self?.ensureBubbleVisible()
+            }
+        }
+    }
+
+    private func ensureBubbleVisible() {
+        guard let panel = bubblePanel else { return }
+        if !panel.isVisible {
+            NSLog("[Erestor] Bubble watchdog: panel was hidden, restoring")
+            panel.orderFront(nil)
+        }
+        // Also verify bubble is on-screen (not pushed off by display changes)
+        if let screen = NSScreen.main {
+            let screenFrame = screen.visibleFrame
+            let bubbleFrame = panel.frame
+            if !screenFrame.intersects(bubbleFrame) {
+                NSLog("[Erestor] Bubble watchdog: panel was off-screen, repositioning")
+                let x = screenFrame.maxX - bubbleSize - 20
+                let y = screenFrame.minY + 120
+                panel.setFrameOrigin(NSPoint(x: x, y: y))
             }
         }
     }

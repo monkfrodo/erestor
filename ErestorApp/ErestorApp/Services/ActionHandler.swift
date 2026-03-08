@@ -75,6 +75,7 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
                 }
                 switch action.type {
                 case "reminder":
+                    NSLog("[Erestor] Reminder action received — text: \(action.text ?? "nil"), at: \(action.at ?? "nil")")
                     scheduleReminder(text: action.text ?? "Lembrete do Erestor", at: action.at)
                 case "open_project":
                     openProject(path: action.path ?? "")
@@ -156,35 +157,58 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
 
     func scheduleReminder(text: String, at timeString: String?) {
         let center = UNUserNotificationCenter.current()
-        let content = UNMutableNotificationContent()
-        content.title = "Erestor"
-        content.body = text
-        content.sound = .default
 
-        let trigger: UNNotificationTrigger?
-
-        if let timeString, let (hour, minute) = parseTime(timeString) {
-            var dateComponents = DateComponents()
-            dateComponents.hour = hour
-            dateComponents.minute = minute
-            dateComponents.timeZone = TimeZone(identifier: "America/Sao_Paulo")
-            trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
-            logger.info("Scheduling reminder at \(timeString): \(text)")
-        } else {
-            // No time specified — deliver in 5 seconds
-            trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
-            logger.info("Scheduling immediate reminder: \(text)")
-        }
-
-        let request = UNNotificationRequest(
-            identifier: UUID().uuidString,
-            content: content,
-            trigger: trigger
-        )
-
-        center.add(request) { error in
+        // Ensure permission is granted before scheduling
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if let error {
-                logger.error("Failed to schedule notification: \(error.localizedDescription)")
+                logger.error("Notification permission error: \(error.localizedDescription)")
+                return
+            }
+            guard granted else {
+                logger.warning("Notification permission not granted")
+                return
+            }
+
+            let content = UNMutableNotificationContent()
+            content.title = "Erestor"
+            content.body = text
+            content.sound = .default
+
+            let trigger: UNNotificationTrigger?
+
+            if let timeString {
+                if let seconds = self.parseRelativeTime(timeString) {
+                    // Relative time: "30s", "5m", "2min", "1h"
+                    let interval = max(1, seconds)
+                    trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(interval), repeats: false)
+                    logger.info("Scheduling reminder in \(interval)s: \(text)")
+                } else if let (hour, minute) = self.parseTime(timeString) {
+                    // Absolute time: "10:30"
+                    var dateComponents = DateComponents()
+                    dateComponents.hour = hour
+                    dateComponents.minute = minute
+                    dateComponents.timeZone = TimeZone(identifier: "America/Sao_Paulo")
+                    trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+                    logger.info("Scheduling reminder at \(timeString): \(text)")
+                } else {
+                    trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+                    logger.info("Unrecognized time format '\(timeString)', defaulting to 5s: \(text)")
+                }
+            } else {
+                trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+                logger.info("Scheduling immediate reminder: \(text)")
+            }
+
+            let request = UNNotificationRequest(
+                identifier: UUID().uuidString,
+                content: content,
+                trigger: trigger
+            )
+
+            center.add(request) { error in
+                if let error {
+                    logger.error("Failed to schedule notification: \(error.localizedDescription)")
+                }
             }
         }
     }
@@ -420,5 +444,38 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
               (0...59).contains(minute)
         else { return nil }
         return (hour, minute)
+    }
+
+    /// Parse relative time strings like "30s", "5m", "5min", "2min", "1h", "90s",
+    /// "1 min", "30 s", "1 minuto", "2 minutos", "1 hora"
+    private func parseRelativeTime(_ str: String) -> Int? {
+        let trimmed = str.trimmingCharacters(in: .whitespaces).lowercased()
+            .replacingOccurrences(of: " ", with: "")
+
+        // "minutos" / "minuto" / "min" / "m"
+        for suffix in ["minutos", "minuto", "min", "m"] {
+            if trimmed.hasSuffix(suffix) {
+                let numStr = trimmed.dropLast(suffix.count)
+                guard let mins = Int(numStr), mins > 0 else { continue }
+                return mins * 60
+            }
+        }
+        // "segundos" / "segundo" / "seg" / "s"
+        for suffix in ["segundos", "segundo", "seg", "s"] {
+            if trimmed.hasSuffix(suffix) {
+                let numStr = trimmed.dropLast(suffix.count)
+                guard let secs = Int(numStr), secs > 0 else { continue }
+                return secs
+            }
+        }
+        // "horas" / "hora" / "h"
+        for suffix in ["horas", "hora", "h"] {
+            if trimmed.hasSuffix(suffix) {
+                let numStr = trimmed.dropLast(suffix.count)
+                guard let hours = Int(numStr), hours > 0 else { continue }
+                return hours * 3600
+            }
+        }
+        return nil
     }
 }
