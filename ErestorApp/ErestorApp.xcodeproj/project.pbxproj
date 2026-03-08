@@ -7,22 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		02D9478C9BAFA717FCE07E84 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F4381D976D8AA954AF4DC91 /* ChatView.swift */; };
 		0355328392BA6A461B2B796B /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 6D8C040A7322C909CF58DB9C /* icon.png */; };
 		03B1590DAD5A52517B5BE236 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CBE77C1C1F6C9A9AE9A81DE /* Message.swift */; };
 		0714E196DFC2CA2CEC8FC239 /* ActionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29616889FD16929E28F62E9 /* ActionHandler.swift */; };
 		0A1961BB49D4892DD6A2355B /* BubbleWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C68E83AC4D75DB1530301B82 /* BubbleWindowController.swift */; };
-		0B78BCD2763D608CFDAC0F81 /* TransparentWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A35282B25965EB30CFC2AF9 /* TransparentWindow.swift */; };
 		1C7F302F6D0C9C9F4472379C /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF6A3BCDB2B8FE40305DA4 /* ChatService.swift */; };
-		1CA1563CA2ACE1E0B77B5C8E /* FloatingBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F6ECD32369664EA2A6826FF /* FloatingBubbleView.swift */; };
 		33C6219B4048DE979B04D87A /* chat.html in Resources */ = {isa = PBXBuildFile; fileRef = 27FCF827EAD5CCE3CE63CD1A /* chat.html */; };
 		3A6B1E59CB742A39498FBB82 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 357863D6A81C8176502DCB8C /* MenuBarView.swift */; };
 		492BAB83C55D9443874A5A3F /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 13C54B088922E68C9346B5D6 /* Carbon.framework */; };
 		52C7AF71265210F649FC9098 /* ChatWebViewVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7CF7982BA4E26DEEFDFBFA2 /* ChatWebViewVC.swift */; };
-		5C424C6EDE6CB1EEBE22B953 /* ChatPanelContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C36637BC41C392D75E2EBA6 /* ChatPanelContentView.swift */; };
 		7A58AC9E8A315C4B2B42C459 /* GlobalHotkey.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4D04077E89AF5E8483CEF1 /* GlobalHotkey.swift */; };
-		91FF5E761A9EF2535CF2FECF /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8258FE4F2419EA56562D1627 /* SidebarView.swift */; };
-		A439BAEF4F4650F61C9E4ED5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40561B0089DBF3B5A5A05157 /* ContentView.swift */; };
 		C19F2AB711DC56A08FA7A786 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CAF21A8BB3986DAF6CC78D41 /* Assets.xcassets */; };
 		E66F0524475D36B073F783D3 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CB6436DDC8DE2DDC409F26 /* Color+Hex.swift */; };
 		E7522F220C723B0BD7E6EEDF /* ErestorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A90B1FEF0C3A626ED06FDA /* ErestorApp.swift */; };
@@ -35,14 +29,8 @@
 		2C1BE0AC8A367A0AB5CB80D3 /* ErestorApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ErestorApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		32CB6436DDC8DE2DDC409F26 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
 		357863D6A81C8176502DCB8C /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
-		3F4381D976D8AA954AF4DC91 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
-		40561B0089DBF3B5A5A05157 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		6D8C040A7322C909CF58DB9C /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
-		7C36637BC41C392D75E2EBA6 /* ChatPanelContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatPanelContentView.swift; sourceTree = "<group>"; };
 		7CBE77C1C1F6C9A9AE9A81DE /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
-		7F6ECD32369664EA2A6826FF /* FloatingBubbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingBubbleView.swift; sourceTree = "<group>"; };
-		8258FE4F2419EA56562D1627 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
-		8A35282B25965EB30CFC2AF9 /* TransparentWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransparentWindow.swift; sourceTree = "<group>"; };
 		8C1CDFC6B22B296A17AA23D6 /* ErestorApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ErestorApp.entitlements; sourceTree = "<group>"; };
 		9BAF6A3BCDB2B8FE40305DA4 /* ChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatService.swift; sourceTree = "<group>"; };
 		A7CF7982BA4E26DEEFDFBFA2 /* ChatWebViewVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatWebViewVC.swift; sourceTree = "<group>"; };
@@ -89,24 +77,11 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
-		685E0B61708EDDA75DB4DAC5 /* Helpers */ = {
-			isa = PBXGroup;
-			children = (
-				8A35282B25965EB30CFC2AF9 /* TransparentWindow.swift */,
-			);
-			path = Helpers;
-			sourceTree = "<group>";
-		};
 		BAA926090CF0F48AB9D246DC /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				7C36637BC41C392D75E2EBA6 /* ChatPanelContentView.swift */,
-				3F4381D976D8AA954AF4DC91 /* ChatView.swift */,
 				A7CF7982BA4E26DEEFDFBFA2 /* ChatWebViewVC.swift */,
-				40561B0089DBF3B5A5A05157 /* ContentView.swift */,
-				7F6ECD32369664EA2A6826FF /* FloatingBubbleView.swift */,
 				357863D6A81C8176502DCB8C /* MenuBarView.swift */,
-				8258FE4F2419EA56562D1627 /* SidebarView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -119,7 +94,6 @@
 				17A90B1FEF0C3A626ED06FDA /* ErestorApp.swift */,
 				F62EEAB88F334FFD13CA069A /* Info.plist */,
 				4E944DFE09779714A3190AE6 /* Extensions */,
-				685E0B61708EDDA75DB4DAC5 /* Helpers */,
 				2A70F23310FCE9ED3AEC11EF /* Models */,
 				DD97DB1D88F3245CEA4C52CA /* Resources */,
 				F7216CC98F0993D498BC3E8E /* Services */,
@@ -237,19 +211,13 @@
 			files = (
 				0714E196DFC2CA2CEC8FC239 /* ActionHandler.swift in Sources */,
 				0A1961BB49D4892DD6A2355B /* BubbleWindowController.swift in Sources */,
-				5C424C6EDE6CB1EEBE22B953 /* ChatPanelContentView.swift in Sources */,
 				1C7F302F6D0C9C9F4472379C /* ChatService.swift in Sources */,
-				02D9478C9BAFA717FCE07E84 /* ChatView.swift in Sources */,
 				52C7AF71265210F649FC9098 /* ChatWebViewVC.swift in Sources */,
 				E66F0524475D36B073F783D3 /* Color+Hex.swift in Sources */,
-				A439BAEF4F4650F61C9E4ED5 /* ContentView.swift in Sources */,
 				E7522F220C723B0BD7E6EEDF /* ErestorApp.swift in Sources */,
-				1CA1563CA2ACE1E0B77B5C8E /* FloatingBubbleView.swift in Sources */,
 				7A58AC9E8A315C4B2B42C459 /* GlobalHotkey.swift in Sources */,
 				3A6B1E59CB742A39498FBB82 /* MenuBarView.swift in Sources */,
 				03B1590DAD5A52517B5BE236 /* Message.swift in Sources */,
-				91FF5E761A9EF2535CF2FECF /* SidebarView.swift in Sources */,
-				0B78BCD2763D608CFDAC0F81 /* TransparentWindow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

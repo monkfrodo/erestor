@@ -16,29 +16,40 @@ class ChatService: ObservableObject {
     @Published var streamDelta: StreamDelta?
 
     private let baseURL = "http://127.0.0.1:8766"
-    private var statusTimer: Timer?
+    private var statusTask: Task<Void, Never>?
 
     deinit {
-        statusTimer?.invalidate()
+        statusTask?.cancel()
     }
 
     init() {
-        Task {
-            await checkStatus()
-            if serverOnline { await loadHistory() }
+        // DEBUG: all init activity disabled to isolate focus stealing
+    }
+
+    /// Network call runs completely OFF MainActor — no focus stealing
+    private nonisolated static func pollStatus(baseURL: String) async -> Bool {
+        guard let url = URL(string: "\(baseURL)/status") else { return false }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 5
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            return (response as? HTTPURLResponse)?.statusCode == 200
+        } catch {
+            return false
         }
-        // Recheck server status every 10s until online, then every 60s
-        statusTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                guard let self else { return }
-                await self.checkStatus()
-                // Once online with no failures, slow down polling
-                if self.serverOnline, self.consecutiveFailures == 0, self.statusTimer?.timeInterval != 60 {
-                    self.statusTimer?.invalidate()
-                    self.statusTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-                        Task { @MainActor in await self?.checkStatus() }
-                    }
-                }
+    }
+
+    /// Only touches MainActor to update state — minimal main thread work
+    private func applyStatusResult(_ online: Bool) {
+        if online {
+            if !serverOnline { serverOnline = true }
+            lastSuccessfulRequest = Date()
+            consecutiveFailures = 0
+        } else {
+            consecutiveFailures += 1
+            let recentSuccess = Date().timeIntervalSince(lastSuccessfulRequest) < 30
+            if consecutiveFailures >= 3 && !recentSuccess {
+                if serverOnline { serverOnline = false }
             }
         }
     }
@@ -213,51 +224,8 @@ class ChatService: ObservableObject {
     private var consecutiveFailures = 0
 
     func checkStatus() async {
-        // Don't mark offline if we had a successful request in the last 30s
-        let recentSuccess = Date().timeIntervalSince(lastSuccessfulRequest) < 30
-        guard let url = URL(string: "\(baseURL)/status") else { return }
-
-        var request = URLRequest(url: url)
-        request.timeoutInterval = 5
-
-        do {
-            let (_, response) = try await URLSession.shared.data(for: request)
-            if (response as? HTTPURLResponse)?.statusCode == 200 {
-                serverOnline = true
-                lastSuccessfulRequest = Date()
-                consecutiveFailures = 0
-                // Restore normal polling if we were in rapid 5s mode
-                if let interval = statusTimer?.timeInterval, interval < 10 {
-                    statusTimer?.invalidate()
-                    statusTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
-                        Task { @MainActor in
-                            guard let self else { return }
-                            await self.checkStatus()
-                            if self.serverOnline, self.consecutiveFailures == 0, self.statusTimer?.timeInterval != 60 {
-                                self.statusTimer?.invalidate()
-                                self.statusTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-                                    Task { @MainActor in await self?.checkStatus() }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } catch {
-            consecutiveFailures += 1
-            // Only mark offline after 3 consecutive failures AND no recent success
-            // This prevents brief backend restarts from showing error to user
-            if consecutiveFailures >= 3 && !recentSuccess {
-                serverOnline = false
-                // Speed up polling to detect recovery faster
-                if statusTimer?.timeInterval != 5 {
-                    statusTimer?.invalidate()
-                    statusTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
-                        Task { @MainActor in await self?.checkStatus() }
-                    }
-                }
-            }
-        }
+        let online = await Self.pollStatus(baseURL: baseURL)
+        applyStatusResult(online)
     }
 
     func clearHistory() async {

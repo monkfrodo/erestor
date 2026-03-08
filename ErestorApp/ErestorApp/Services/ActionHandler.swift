@@ -193,15 +193,16 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
     }
 
     private func openTerminalAt(_ path: String) {
+        let safePath = path.replacingOccurrences(of: "'", with: "'\\''")
         let script = """
         tell application "iTerm"
             activate
-            create window with default profile command "cd '\(path)' && claude"
+            create window with default profile command "cd '\(safePath)' && claude"
         end tell
         """
 
-        // Run AppleScript off the main thread to avoid blocking UI/streaming
-        DispatchQueue.global(qos: .userInitiated).async {
+        // NSAppleScript must run on main thread for thread safety
+        DispatchQueue.main.async {
             if let appleScript = NSAppleScript(source: script) {
                 var error: NSDictionary?
                 appleScript.executeAndReturnError(&error)
@@ -345,8 +346,8 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
         tell application "\(appName)" to \(action)
         """
 
-        // Run AppleScript off the main thread to avoid blocking UI/streaming
-        DispatchQueue.global(qos: .userInitiated).async {
+        // NSAppleScript must run on main thread for thread safety
+        DispatchQueue.main.async {
             if let appleScript = NSAppleScript(source: script) {
                 var error: NSDictionary?
                 appleScript.executeAndReturnError(&error)

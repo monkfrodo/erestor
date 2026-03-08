@@ -17,16 +17,13 @@ class BubbleWindowController: ObservableObject {
     private var timerPanel: NSPanel?
     private var timerLabel: NSTextField?
     private var timerDescLabel: NSTextField?
-    private var timerPollTimer: Timer?
+    private var timerPollTask: Task<Void, Never>?
     var chatService: ChatService?
     private var actionHandler: ActionHandler?
 
     var chatWebVC: ChatWebViewController?
     private var streamCancellable: AnyCancellable?
     private var actionsCancellable: AnyCancellable?
-    private var contextPollTimer: Timer?
-    private var currentEventTitle: String?
-
     private let bubbleSize: CGFloat = 52
     private let chatWidth: CGFloat = 340
     private let chatHeight: CGFloat = 480
@@ -36,8 +33,7 @@ class BubbleWindowController: ObservableObject {
     private var dragOffset: NSPoint = .zero
 
     deinit {
-        contextPollTimer?.invalidate()
-        timerPollTimer?.invalidate()
+        timerPollTask?.cancel()
     }
 
     private init() {}
@@ -56,14 +52,11 @@ class BubbleWindowController: ObservableObject {
         createTimerPanel()
         observeStreaming()
         startTimerPolling()
-        startContextPolling()
     }
 
     // MARK: - Bubble Panel
 
     private func createBubblePanel() {
-        guard let chatService else { return }
-
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: bubbleSize, height: bubbleSize),
             styleMask: [.borderless, .nonactivatingPanel],
@@ -79,16 +72,31 @@ class BubbleWindowController: ObservableObject {
         panel.hidesOnDeactivate = false
         panel.animationBehavior = .none
 
-        let bubbleView = FloatingBubbleView(onTap: { [weak self] in
-            self?.toggleChat()
-        })
-        .environmentObject(chatService)
+        // Pure AppKit bubble — no SwiftUI/NSHostingView to avoid focus stealing
+        let container = NSView(frame: NSRect(x: 0, y: 0, width: bubbleSize, height: bubbleSize))
+        container.wantsLayer = true
+        container.layer?.backgroundColor = .clear
 
-        let hostingView = NSHostingView(rootView: bubbleView)
-        hostingView.frame = NSRect(x: 0, y: 0, width: bubbleSize, height: bubbleSize)
-        hostingView.wantsLayer = true
-        hostingView.layer?.backgroundColor = .clear
-        panel.contentView = hostingView
+        if let iconURL = Bundle.main.url(forResource: "icon", withExtension: "png"),
+           let nsImage = NSImage(contentsOf: iconURL) {
+            let imageView = NSImageView(frame: NSRect(x: 0, y: 0, width: bubbleSize, height: bubbleSize))
+            imageView.image = nsImage
+            imageView.imageScaling = .scaleProportionallyUpOrDown
+            imageView.wantsLayer = true
+            imageView.layer?.cornerRadius = bubbleSize / 2
+            imageView.layer?.masksToBounds = true
+            container.addSubview(imageView)
+        }
+
+        // Subtle border ring
+        let borderLayer = CAShapeLayer()
+        borderLayer.path = CGPath(ellipseIn: NSRect(x: 0.75, y: 0.75, width: bubbleSize - 1.5, height: bubbleSize - 1.5), transform: nil)
+        borderLayer.fillColor = nil
+        borderLayer.strokeColor = NSColor(red: 0.63, green: 0.63, blue: 0.63, alpha: 0.5).cgColor
+        borderLayer.lineWidth = 1.5
+        container.layer?.addSublayer(borderLayer)
+
+        panel.contentView = container
 
         if let screen = NSScreen.main {
             let screenFrame = screen.visibleFrame
@@ -112,7 +120,7 @@ class BubbleWindowController: ObservableObject {
 
         let panel = KeyablePanel(
             contentRect: NSRect(x: 0, y: 0, width: chatWidth, height: chatHeight),
-            styleMask: [.borderless, .resizable],
+            styleMask: [.borderless, .nonactivatingPanel, .resizable],
             backing: .buffered,
             defer: false
         )
@@ -327,103 +335,87 @@ class BubbleWindowController: ObservableObject {
     }
 
     private func startTimerPolling() {
-        timerPollTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            DispatchQueue.main.async { self?.updateTimerDisplay() }
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-            self?.updateTimerDisplay()
-        }
-    }
+        // ZERO MainActor hops — all state cached locally in the detached task.
+        // Only touches MainActor when display values actually change.
+        timerPollTask = Task.detached { [weak self] in
+            let home = FileManager.default.homeDirectoryForCurrentUser
+            // Local cache — no MainActor reads needed
+            var prevTimerText = ""
+            var prevDescText = ""
+            var prevVisible: Bool = false
+            var cachedEventTitle: String? = nil
 
-    private func startContextPolling() {
-        // Poll /context every 30s to get current calendar event
-        contextPollTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.fetchCurrentEvent() }
-        }
-        // Initial fetch
-        Task { @MainActor in fetchCurrentEvent() }
-    }
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s
 
-    private func fetchCurrentEvent() {
-        guard let url = URL(string: "http://127.0.0.1:8766/context") else { return }
-        Task.detached { [weak self] in
-            do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                let ctx = try JSONDecoder().decode(ContextSummary.self, from: data)
-                await MainActor.run {
-                    self?.currentEventTitle = ctx.currentEvent?.title
-                    self?.updateTimerDisplay()
-                }
-            } catch {
-                // Silently ignore — context is optional
-            }
-        }
-    }
+                var timerText = ""
+                var descText = ""
+                var found = false
 
-    private func updateTimerDisplay() {
-        guard let timerPanel, let timerLabel, let bubblePanel else { return }
-        let home = FileManager.default.homeDirectoryForCurrentUser
+                for (_, file) in [("work", ".work_timer"), ("content", ".content_timer"), ("tech", ".ocio_timer")] {
+                    let path = home.appendingPathComponent(file)
+                    guard FileManager.default.fileExists(atPath: path.path) else { continue }
+                    guard let tsStr = try? String(contentsOf: path, encoding: .utf8)
+                        .trimmingCharacters(in: .whitespacesAndNewlines),
+                          let ts = Double(tsStr) else { continue }
 
-        var found = false
-        for (_, file) in [("work", ".work_timer"), ("content", ".content_timer"), ("tech", ".ocio_timer")] {
-            let path = home.appendingPathComponent(file)
-            guard FileManager.default.fileExists(atPath: path.path) else { continue }
-            do {
-                let tsStr = try String(contentsOf: path, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
-                guard let ts = Double(tsStr) else { continue }
-                let elapsed = Int(Date().timeIntervalSince1970 - ts)
-                let hours = elapsed / 3600
-                let mins = (elapsed % 3600) / 60
-                let secs = elapsed % 60
-                if hours > 0 {
-                    timerLabel.stringValue = String(format: "%d:%02d:%02d", hours, mins, secs)
-                } else {
-                    timerLabel.stringValue = String(format: "%02d:%02d", mins, secs)
+                    let elapsed = Int(Date().timeIntervalSince1970 - ts)
+                    let hours = elapsed / 3600
+                    let mins = (elapsed % 3600) / 60
+                    let secs = elapsed % 60
+                    timerText = hours > 0
+                        ? String(format: "%d:%02d:%02d", hours, mins, secs)
+                        : String(format: "%02d:%02d", mins, secs)
+
+                    let descPath = home.appendingPathComponent(file.replacingOccurrences(of: "_timer", with: "_desc"))
+                    let rawDesc = (try? String(contentsOf: descPath, encoding: .utf8)
+                        .trimmingCharacters(in: .whitespacesAndNewlines)) ?? ""
+                    let words = rawDesc.split(separator: " ").map(String.init)
+                        .filter { $0.count > 2 && $0 != "&" }
+                    let shortWord = words.min(by: { $0.count < $1.count }) ?? words.first ?? rawDesc
+                    descText = (shortWord.count > 8 ? String(shortWord.prefix(6)) + "…" : shortWord).lowercased()
+                    found = true
+                    break
                 }
 
-                let descPath = home.appendingPathComponent(file.replacingOccurrences(of: "_timer", with: "_desc"))
-                let desc = (try? String(contentsOf: descPath, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)) ?? ""
-                // Pick shortest meaningful word (skip "&", "e", "de", etc.)
-                let words = desc.split(separator: " ").map(String.init)
-                    .filter { $0.count > 2 && $0 != "&" }
-                let shortWord = words.min(by: { $0.count < $1.count }) ?? words.first ?? desc
-                let label = shortWord.count > 8
-                    ? String(shortWord.prefix(6)) + "…"
-                    : shortWord
-                timerDescLabel?.stringValue = label.lowercased()
-
-                // Position below bubble, centered
-                let bubbleFrame = bubblePanel.frame
-                let x = bubbleFrame.midX - 70
-                let y = bubbleFrame.minY - 44
-                timerPanel.setFrameOrigin(NSPoint(x: x, y: y))
-                if !timerPanel.isVisible {
-                    timerPanel.order(.above, relativeTo: bubblePanel.windowNumber)
+                if !found, let et = cachedEventTitle, !et.isEmpty {
+                    timerText = ""
+                    descText = (et.count > 18 ? String(et.prefix(16)) + "…" : et).lowercased()
+                    found = true
                 }
-                found = true
-                break
-            } catch { continue }
-        }
 
-        // No active timer — show current calendar event if available
-        if !found {
-            if let eventTitle = currentEventTitle, !eventTitle.isEmpty {
-                timerLabel.stringValue = ""
-                // Truncate long event names to fit below the bubble
-                let truncated = eventTitle.count > 18
-                    ? String(eventTitle.prefix(16)) + "…"
-                    : eventTitle
-                timerDescLabel?.stringValue = truncated.lowercased()
-
-                let bubbleFrame = bubblePanel.frame
-                let x = bubbleFrame.midX - 70
-                let y = bubbleFrame.minY - 44
-                timerPanel.setFrameOrigin(NSPoint(x: x, y: y))
-                if !timerPanel.isVisible {
-                    timerPanel.order(.above, relativeTo: bubblePanel.windowNumber)
+                let needsUpdate = timerText != prevTimerText || descText != prevDescText || found != prevVisible
+                if needsUpdate {
+                    prevTimerText = timerText
+                    prevDescText = descText
+                    prevVisible = found
+                    let tt = timerText, dt = descText, show = found
+                    await MainActor.run {
+                        guard let self, let timerPanel = self.timerPanel,
+                              let timerLabel = self.timerLabel, let bubblePanel = self.bubblePanel else { return }
+                        if show {
+                            timerLabel.stringValue = tt
+                            self.timerDescLabel?.stringValue = dt
+                            let f = bubblePanel.frame
+                            timerPanel.setFrameOrigin(NSPoint(x: f.midX - 70, y: f.minY - 44))
+                            if !timerPanel.isVisible {
+                                timerPanel.order(.above, relativeTo: bubblePanel.windowNumber)
+                            }
+                        } else {
+                            timerPanel.orderOut(nil)
+                        }
+                    }
                 }
-            } else {
-                timerPanel.orderOut(nil)
+
+                // Refresh cached event title every 30 cycles (30s)
+                if Int(Date().timeIntervalSince1970) % 30 == 0 {
+                    if let url = URL(string: "http://127.0.0.1:8766/context") {
+                        if let (data, _) = try? await URLSession.shared.data(from: url),
+                           let ctx = try? JSONDecoder().decode(ContextSummary.self, from: data) {
+                            cachedEventTitle = ctx.currentEvent?.title
+                        }
+                    }
+                }
             }
         }
     }
@@ -444,8 +436,7 @@ class BubbleWindowController: ObservableObject {
         positionChatPanel(relativeTo: bubblePanel.frame)
 
         chatPanel.alphaValue = 0
-        NSApp.activate(ignoringOtherApps: true)
-        chatPanel.makeKeyAndOrderFront(nil)
+        chatPanel.orderFront(nil)
 
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.15
@@ -455,10 +446,11 @@ class BubbleWindowController: ObservableObject {
 
         isChatVisible = true
 
-        // Focus textarea
+        // Focus textarea — nonactivatingPanel can receive keys without stealing app focus
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-            guard let self, let webView = self.chatWebVC?.webView else { return }
-            self.chatPanel?.makeFirstResponder(webView)
+            guard let self, let chatPanel = self.chatPanel, let webView = self.chatWebVC?.webView else { return }
+            chatPanel.makeKey()
+            chatPanel.makeFirstResponder(webView)
             webView.evaluateJavaScript("document.getElementById('msg-input').focus()")
         }
     }
@@ -516,7 +508,13 @@ class BubbleWindowController: ObservableObject {
         if isChatVisible {
             positionChatPanel(relativeTo: bubblePanel.frame)
         }
-        updateTimerDisplay()
+        repositionTimerPanel()
+    }
+
+    private func repositionTimerPanel() {
+        guard let timerPanel, timerPanel.isVisible, let bubblePanel else { return }
+        let bubbleFrame = bubblePanel.frame
+        timerPanel.setFrameOrigin(NSPoint(x: bubbleFrame.midX - 70, y: bubbleFrame.minY - 44))
     }
 
     func bubbleDragEnded() {
@@ -538,7 +536,7 @@ class BubbleWindowController: ObservableObject {
         let bubbleY = chatFrame.minY
 
         bubblePanel.setFrameOrigin(NSPoint(x: bubbleX, y: bubbleY))
-        updateTimerDisplay()
+        repositionTimerPanel()
     }
 }
 
@@ -616,7 +614,7 @@ class ResizeHandleView: NSView {
 
 class KeyablePanel: NSPanel {
     override var canBecomeKey: Bool { true }
-    override var canBecomeMain: Bool { true }
+    override var canBecomeMain: Bool { false }
 
     override func keyDown(with event: NSEvent) {
         // Escape → close chat

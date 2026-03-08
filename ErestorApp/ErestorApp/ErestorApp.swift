@@ -7,31 +7,27 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     let actionHandler = ActionHandler.shared
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Close any default window SwiftUI may have created
         for window in NSApp.windows {
             window.orderOut(nil)
         }
 
-        // Setup floating bubble + chat panel
+        NSApp.setActivationPolicy(.accessory)
+
         let bubble = BubbleWindowController.shared
         bubble.setup(chatService: chatService, actionHandler: actionHandler)
 
-        // Global hotkey toggles chat
         GlobalHotkey.shared.register {
             DispatchQueue.main.async {
-                NSApp.activate(ignoringOtherApps: true)
                 BubbleWindowController.shared.toggleChat()
             }
         }
 
-        // Load context
         Task { await chatService.loadContext() }
+        Task { await chatService.checkStatus() }
 
-        // Notification delegate for LSUIElement apps
         UNUserNotificationCenter.current().delegate = self
     }
 
-    // Show notifications even when app is foreground (LSUIElement)
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
