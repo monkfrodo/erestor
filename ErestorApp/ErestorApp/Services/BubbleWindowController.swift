@@ -398,7 +398,7 @@ class BubbleWindowController: ObservableObject {
                 let y = bubbleFrame.minY - 44
                 timerPanel.setFrameOrigin(NSPoint(x: x, y: y))
                 if !timerPanel.isVisible {
-                    timerPanel.orderFront(nil)
+                    timerPanel.order(.above, relativeTo: bubblePanel.windowNumber)
                 }
                 found = true
                 break
@@ -420,7 +420,7 @@ class BubbleWindowController: ObservableObject {
                 let y = bubbleFrame.minY - 44
                 timerPanel.setFrameOrigin(NSPoint(x: x, y: y))
                 if !timerPanel.isVisible {
-                    timerPanel.orderFront(nil)
+                    timerPanel.order(.above, relativeTo: bubblePanel.windowNumber)
                 }
             } else {
                 timerPanel.orderOut(nil)
