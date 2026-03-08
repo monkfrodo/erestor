@@ -133,7 +133,22 @@ class ChatService: ObservableObject {
 
         } catch {
             logger.error("Streaming failed: \(error.localizedDescription)")
-            appendErrorMessage()
+            // If the server was recently online, don't show connection error —
+            // likely just a slow Claude CLI response that timed out
+            let recentlyOnline = Date().timeIntervalSince(lastSuccessfulRequest) < 60
+            if recentlyOnline {
+                let timeoutMsg = ChatMessage(
+                    role: .assistant,
+                    text: "A resposta demorou demais e foi interrompida. Tenta de novo com uma mensagem mais curta.",
+                    timestamp: Self.currentTime()
+                )
+                messages.append(timeoutMsg)
+                streamDelta = StreamDelta(kind: .finished, text: timeoutMsg.text, timestamp: timeoutMsg.timestamp)
+                isLoading = false
+                isStreaming = false
+            } else {
+                appendErrorMessage()
+            }
         }
     }
 
