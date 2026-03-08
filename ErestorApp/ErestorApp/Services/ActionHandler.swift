@@ -63,70 +63,80 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
     ]
 
     func execute(_ actions: [ChatAction]) {
-        for action in actions {
-            // Backend actions show feedback after completion; others show immediately
-            if action.type != "screenshot" && !Self.backendActions.contains(action.type),
-               let label = Self.actionLabels[action.type] {
-                let detail = action.desc ?? action.title ?? action.text ?? action.name ?? ""
-                let msg = detail.isEmpty ? "✓ \(label)" : "✓ \(label): \(detail)"
-                showFeedback(msg)
-            }
-            switch action.type {
-            case "reminder":
-                scheduleReminder(text: action.text ?? "Lembrete do Erestor", at: action.at)
-            case "open_project":
-                openProject(path: action.path ?? "")
-            case "open_url":
-                openURL(urlString: action.url ?? "")
-            case "open_app":
-                openApp(name: action.name ?? "")
-            case "open_finder":
-                openFinder(path: action.path ?? "")
-            case "clipboard":
-                copyToClipboard(text: action.text ?? "")
-            case "shell":
-                runShell(cmd: action.cmd ?? "")
-            case "timer_start":
-                startTimer(timerType: action.timerType ?? "work", desc: action.desc ?? "", startedAt: action.startedAt)
-            case "timer_stop":
-                stopTimer(timerType: action.timerType ?? "work")
-            case "gcal_create":
-                createCalendarEvent(
-                    title: action.title ?? "",
-                    calendar: action.calendar ?? "trabalho",
-                    date: action.date ?? "",
-                    start: action.start ?? "",
-                    end: action.end ?? ""
-                )
-            case "gcal_update":
-                updateCalendarEvent(
-                    title: action.title ?? "",
-                    calendar: action.calendar ?? "trabalho",
-                    start: action.start ?? "",
-                    end: action.end ?? ""
-                )
-            case "create_task":
-                createTask(
-                    title: action.title ?? "",
-                    priority: action.priority ?? "P2",
-                    due: action.date ?? "",
-                    category: action.category ?? "trabalho"
-                )
-            case "complete_task":
-                completeTask(title: action.title ?? "")
-            case "web_search":
-                webSearch(query: action.text ?? "")
-            case "music_toggle":
-                musicControl(action: "playpause")
-            case "music_next":
-                musicControl(action: "next track")
-            case "music_prev":
-                musicControl(action: "previous track")
-            case "screenshot":
-                // Don't show feedback before screencapture completes — it's interactive
-                captureScreenshot()
-            default:
-                logger.warning("Unknown action type: \(action.type)")
+        // Execute actions sequentially to preserve ordering (e.g. timer_stop then timer_start)
+        Task { @MainActor in
+            for action in actions {
+                // Backend actions show feedback after completion; others show immediately
+                if action.type != "screenshot" && !Self.backendActions.contains(action.type),
+                   let label = Self.actionLabels[action.type] {
+                    let detail = action.desc ?? action.title ?? action.text ?? action.name ?? ""
+                    let msg = detail.isEmpty ? "✓ \(label)" : "✓ \(label): \(detail)"
+                    showFeedback(msg)
+                }
+                switch action.type {
+                case "reminder":
+                    scheduleReminder(text: action.text ?? "Lembrete do Erestor", at: action.at)
+                case "open_project":
+                    openProject(path: action.path ?? "")
+                case "open_url":
+                    openURL(urlString: action.url ?? "")
+                case "open_app":
+                    openApp(name: action.name ?? "")
+                case "open_finder":
+                    openFinder(path: action.path ?? "")
+                case "clipboard":
+                    copyToClipboard(text: action.text ?? "")
+                case "shell":
+                    runShell(cmd: action.cmd ?? "")
+                case "timer_start":
+                    await callBackendEndpointAsync("/timer/start", body: [
+                        "type": action.timerType ?? "work",
+                        "desc": action.desc ?? "",
+                        "started_at": action.startedAt ?? ""
+                    ].filter { !$0.value.isEmpty }, actionType: "timer_start")
+                case "timer_stop":
+                    await callBackendEndpointAsync("/timer/stop", body: [
+                        "type": action.timerType ?? "work"
+                    ], actionType: "timer_stop")
+                case "gcal_create":
+                    await callBackendEndpointAsync("/gcal/create", body: [
+                        "title": action.title ?? "",
+                        "calendar": action.calendar ?? "trabalho",
+                        "date": action.date ?? "",
+                        "start": action.start ?? "",
+                        "end": action.end ?? ""
+                    ], actionType: "gcal_create")
+                case "gcal_update":
+                    await callBackendEndpointAsync("/gcal/update", body: {
+                        var b = ["title": action.title ?? "", "calendar": action.calendar ?? "trabalho"]
+                        if let s = action.start, !s.isEmpty { b["start"] = s }
+                        if let e = action.end, !e.isEmpty { b["end"] = e }
+                        return b
+                    }(), actionType: "gcal_update")
+                case "create_task":
+                    await callBackendEndpointAsync("/task/create", body: [
+                        "title": action.title ?? "",
+                        "priority": action.priority ?? "P2",
+                        "due": action.date ?? "",
+                        "category": action.category ?? "trabalho"
+                    ], actionType: "create_task")
+                case "complete_task":
+                    await callBackendEndpointAsync("/task/complete", body: [
+                        "title": action.title ?? ""
+                    ], actionType: "complete_task")
+                case "web_search":
+                    webSearch(query: action.text ?? "")
+                case "music_toggle":
+                    musicControl(action: "playpause")
+                case "music_next":
+                    musicControl(action: "next track")
+                case "music_prev":
+                    musicControl(action: "previous track")
+                case "screenshot":
+                    captureScreenshot()
+                default:
+                    logger.warning("Unknown action type: \(action.type)")
+                }
             }
         }
     }
@@ -269,46 +279,7 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
         }
     }
 
-    // MARK: - Timer
-
-    func startTimer(timerType: String, desc: String, startedAt: String? = nil) {
-        var body = ["type": timerType, "desc": desc]
-        if let startedAt, !startedAt.isEmpty {
-            body["started_at"] = startedAt
-        }
-        callBackendEndpoint("/timer/start", body: body, actionType: "timer_start")
-    }
-
-    func stopTimer(timerType: String) {
-        callBackendEndpoint("/timer/stop", body: ["type": timerType], actionType: "timer_stop")
-    }
-
-    // MARK: - Google Calendar
-
-    func createCalendarEvent(title: String, calendar: String, date: String, start: String, end: String) {
-        callBackendEndpoint("/gcal/create", body: [
-            "title": title, "calendar": calendar, "date": date, "start": start, "end": end
-        ], actionType: "gcal_create")
-    }
-
-    func updateCalendarEvent(title: String, calendar: String, start: String, end: String) {
-        var body = ["title": title, "calendar": calendar]
-        if !start.isEmpty { body["start"] = start }
-        if !end.isEmpty { body["end"] = end }
-        callBackendEndpoint("/gcal/update", body: body, actionType: "gcal_update")
-    }
-
-    // MARK: - Tasks
-
-    func createTask(title: String, priority: String, due: String, category: String) {
-        callBackendEndpoint("/task/create", body: [
-            "title": title, "priority": priority, "due": due, "category": category
-        ], actionType: "create_task")
-    }
-
-    func completeTask(title: String) {
-        callBackendEndpoint("/task/complete", body: ["title": title], actionType: "complete_task")
-    }
+    // MARK: - Timer, Calendar, Tasks — now called via callBackendEndpointAsync from execute()
 
     // MARK: - Web Search
 
@@ -396,9 +367,9 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
         }
     }
 
-    // MARK: - Backend Helper
+    // MARK: - Backend Helper (async — ensures sequential execution for ordered actions)
 
-    private func callBackendEndpoint(_ path: String, body: [String: String], actionType: String? = nil) {
+    private func callBackendEndpointAsync(_ path: String, body: [String: String], actionType: String? = nil) async {
         let baseURL = "http://127.0.0.1:8766"
         guard let url = URL(string: "\(baseURL)\(path)") else {
             logger.error("Invalid backend URL for path: \(path)")
@@ -408,32 +379,34 @@ class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegat
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONEncoder().encode(body)
-        URLSession.shared.dataTask(with: request) { [weak self, path, actionType] data, response, error in
-            let httpStatus = (response as? HTTPURLResponse)?.statusCode ?? 0
-            let success = error == nil && (200..<300).contains(httpStatus)
 
-            if let error {
-                logger.error("Backend call \(path) failed: \(error.localizedDescription)")
-            } else if !success {
-                let errorMsg = data.flatMap({ try? JSONDecoder().decode([String: String].self, from: $0) })?["error"] ?? "erro desconhecido"
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            let httpStatus = (response as? HTTPURLResponse)?.statusCode ?? 0
+            let success = (200..<300).contains(httpStatus)
+
+            if !success {
+                let errorMsg = (try? JSONDecoder().decode([String: String].self, from: data))?["error"] ?? "erro desconhecido"
                 logger.error("Backend call \(path) returned \(httpStatus): \(errorMsg)")
             } else {
                 logger.info("Backend call \(path) succeeded")
             }
 
-            // Show deferred feedback for backend actions
             if let actionType, let label = Self.actionLabels[actionType] {
-                DispatchQueue.main.async {
-                    let detail = body["title"] ?? body["desc"] ?? body["type"] ?? ""
-                    if success {
-                        let msg = detail.isEmpty ? "✓ \(label)" : "✓ \(label): \(detail)"
-                        self?.showFeedback(msg)
-                    } else {
-                        self?.showFeedback("✗ falha: \(label)")
-                    }
+                let detail = body["title"] ?? body["desc"] ?? body["type"] ?? ""
+                if success {
+                    let msg = detail.isEmpty ? "✓ \(label)" : "✓ \(label): \(detail)"
+                    showFeedback(msg)
+                } else {
+                    showFeedback("✗ falha: \(label)")
                 }
             }
-        }.resume()
+        } catch {
+            logger.error("Backend call \(path) failed: \(error.localizedDescription)")
+            if let actionType, let label = Self.actionLabels[actionType] {
+                showFeedback("✗ falha: \(label)")
+            }
+        }
     }
 
     // MARK: - Helpers

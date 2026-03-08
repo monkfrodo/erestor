@@ -22,6 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             }
         }
 
+        Task { await chatService.loadHistory() }
         Task { await chatService.loadContext() }
         Task { await chatService.checkStatus() }
 

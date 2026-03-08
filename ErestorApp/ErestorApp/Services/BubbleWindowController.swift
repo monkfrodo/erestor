@@ -586,7 +586,7 @@ class ResizeHandleView: NSView {
     }
 
     override func resetCursorRects() {
-        addCursorRect(bounds, cursor: .resizeUpDown)
+        addCursorRect(bounds, cursor: .arrow)
     }
 
     override func mouseDown(with event: NSEvent) {

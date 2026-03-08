@@ -23,7 +23,7 @@ class ChatService: ObservableObject {
     }
 
     init() {
-        // DEBUG: all init activity disabled to isolate focus stealing
+        startStatusPolling()
     }
 
     /// Network call runs completely OFF MainActor — no focus stealing
@@ -94,7 +94,6 @@ class ChatService: ObservableObject {
             serverOnline = true
             lastSuccessfulRequest = Date()
             var accumulated = ""
-            var pendingActions: [ChatAction] = []
 
             for try await line in bytes.lines {
                 // SSE format: lines starting with "data: " contain JSON
@@ -150,11 +149,7 @@ class ChatService: ObservableObject {
             isLoading = false
             isStreaming = false
 
-            // Now publish actions -- observers will execute them after
-            // the stream UI has been fully finalized
-            if !pendingActions.isEmpty {
-                actions = pendingActions
-            }
+            // Actions already published inside the loop at the done event
 
         } catch {
             logger.error("Streaming failed: \(error.localizedDescription)")
@@ -236,6 +231,22 @@ class ChatService: ObservableObject {
     func checkStatus() async {
         let online = await Self.pollStatus(baseURL: baseURL)
         applyStatusResult(online)
+    }
+
+    /// Progressive status polling: 5s → 10s → 60s
+    private func startStatusPolling() {
+        statusTask = Task { [weak self] in
+            // Polling intervals: 5s (6 times), 10s (6 times), then 60s forever
+            let intervals: [UInt64] = Array(repeating: 5, count: 6) + Array(repeating: 10, count: 6)
+            var idx = 0
+            while !Task.isCancelled {
+                let seconds = idx < intervals.count ? intervals[idx] : 60
+                try? await Task.sleep(nanoseconds: seconds * 1_000_000_000)
+                guard let self else { break }
+                await self.checkStatus()
+                idx += 1
+            }
+        }
     }
 
     func clearHistory() async {
