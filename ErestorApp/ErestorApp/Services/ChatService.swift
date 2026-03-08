@@ -77,7 +77,7 @@ class ChatService: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = 120
+        request.timeoutInterval = 300  // 5 min — keepalives every 15s reset idle timer
 
         let body = ["message": text]
         request.httpBody = try? JSONEncoder().encode(body)
