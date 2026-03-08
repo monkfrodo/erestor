@@ -101,8 +101,8 @@ class BubbleWindowController: ObservableObject {
         dragView.controller = self
         panel.contentView?.addSubview(dragView)
 
-        panel.orderFrontRegardless()
         self.bubblePanel = panel
+        panel.orderFront(nil)
     }
 
     // MARK: - Chat Panel (native, no SwiftUI wrapper)
