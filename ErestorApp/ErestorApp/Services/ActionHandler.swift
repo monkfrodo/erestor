@@ -44,6 +44,7 @@ class ActionHandler: NSObject, ObservableObject {
         "music_next": "próxima faixa",
         "music_prev": "faixa anterior",
         "screenshot": "screenshot capturado",
+        "open_desktop": "desktop aberto",
     ]
 
     // Actions that call backend and need deferred feedback
@@ -125,6 +126,8 @@ class ActionHandler: NSObject, ObservableObject {
                     musicControl(action: "previous track")
                 case "screenshot":
                     captureScreenshot()
+                case "open_desktop":
+                    openDesktop()
                 default:
                     logger.warning("Unknown action type: \(action.type)")
                 }
@@ -379,6 +382,16 @@ class ActionHandler: NSObject, ObservableObject {
         } catch {
             logger.error("screencapture failed to launch: \(error.localizedDescription)")
         }
+    }
+
+    // MARK: - Open Desktop (all work tools at once)
+
+    func openDesktop() {
+        let apps = ["iTerm", "Arc"]
+        for app in apps {
+            NSWorkspace.shared.launchApplication(app)
+        }
+        logger.info("Desktop opened: \(apps.joined(separator: ", "))")
     }
 
     // MARK: - Backend Helper (async — ensures sequential execution for ordered actions)

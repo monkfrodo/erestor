@@ -25,7 +25,7 @@ class BubbleWindowController: ObservableObject {
     var chatWebVC: ChatWebViewController?
     private var streamCancellable: AnyCancellable?
     private var actionsCancellable: AnyCancellable?
-    private let bubbleSize: CGFloat = 52
+    private let bubbleSize: CGFloat = 64
     private let chatWidth: CGFloat = 340
     private let chatHeight: CGFloat = 480
     private let margin: CGFloat = 12
@@ -71,7 +71,7 @@ class BubbleWindowController: ObservableObject {
         panel.level = .floating
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = false
+        panel.hasShadow = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.isMovableByWindowBackground = false
         panel.hidesOnDeactivate = false
@@ -80,7 +80,9 @@ class BubbleWindowController: ObservableObject {
         // Pure AppKit bubble — no SwiftUI/NSHostingView to avoid focus stealing
         let container = NSView(frame: NSRect(x: 0, y: 0, width: bubbleSize, height: bubbleSize))
         container.wantsLayer = true
-        container.layer?.backgroundColor = .clear
+        container.layer?.backgroundColor = NSColor(red: 0.16, green: 0.14, blue: 0.13, alpha: 0.85).cgColor
+        container.layer?.cornerRadius = bubbleSize / 2
+        container.layer?.masksToBounds = true
 
         if let iconURL = Bundle.main.url(forResource: "icon", withExtension: "png"),
            let nsImage = NSImage(contentsOf: iconURL) {
@@ -766,5 +768,20 @@ class BubbleDragView: NSView {
         if distance <= dragThreshold {
             controller?.toggleChat()
         }
+    }
+
+    override func rightMouseUp(with event: NSEvent) {
+        let menu = NSMenu()
+        let desktopItem = NSMenuItem(title: "Abrir Desktop", action: #selector(openDesktopAction), keyEquivalent: "")
+        desktopItem.target = self
+        menu.addItem(desktopItem)
+        menu.addItem(NSMenuItem.separator())
+        let quitItem = NSMenuItem(title: "Encerrar Erestor", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "")
+        menu.addItem(quitItem)
+        NSMenu.popUpContextMenu(menu, with: event, for: self)
+    }
+
+    @objc private func openDesktopAction() {
+        ActionHandler.shared.openDesktop()
     }
 }
