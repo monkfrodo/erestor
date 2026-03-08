@@ -8,6 +8,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     private var windowCleanupTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Singleton guard — prevent multiple instances (KeepAlive can restart while old is still alive)
+        let runningInstances = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "")
+        if runningInstances.count > 1 {
+            NSLog("[Erestor] Another instance already running — exiting")
+            NSApp.terminate(nil)
+            return
+        }
         // Nuke state restoration completely
         NSWindow.allowsAutomaticWindowTabbing = false
         UserDefaults.standard.set(false, forKey: "NSQuitAlwaysKeepsWindows")
