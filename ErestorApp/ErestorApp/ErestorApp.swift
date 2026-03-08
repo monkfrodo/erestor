@@ -1,45 +1,55 @@
 import SwiftUI
+import UserNotifications
+
+@MainActor
+class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
+    let chatService = ChatService()
+    let actionHandler = ActionHandler.shared
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // Close any default window SwiftUI may have created
+        for window in NSApp.windows {
+            window.orderOut(nil)
+        }
+
+        // Setup floating bubble + chat panel
+        let bubble = BubbleWindowController.shared
+        bubble.setup(chatService: chatService, actionHandler: actionHandler)
+
+        // Global hotkey toggles chat
+        GlobalHotkey.shared.register {
+            DispatchQueue.main.async {
+                NSApp.activate(ignoringOtherApps: true)
+                BubbleWindowController.shared.toggleChat()
+            }
+        }
+
+        // Load context
+        Task { await chatService.loadContext() }
+
+        // Notification delegate for LSUIElement apps
+        UNUserNotificationCenter.current().delegate = self
+    }
+
+    // Show notifications even when app is foreground (LSUIElement)
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound])
+    }
+}
 
 @main
 struct ErestorApp: App {
-    @StateObject private var chatService = ChatService()
-    @StateObject private var actionHandler = ActionHandler.shared
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        // Invisible settings window (required — SwiftUI needs at least one Scene)
-        Window("Erestor", id: "main") {
-            Color.clear
-                .frame(width: 0, height: 0)
-                .task {
-                    await chatService.loadContext()
-
-                    // Setup floating bubble + chat panel
-                    let bubble = BubbleWindowController.shared
-                    bubble.setup(chatService: chatService, actionHandler: actionHandler)
-
-                    // Global hotkey toggles chat
-                    GlobalHotkey.shared.register {
-                        DispatchQueue.main.async {
-                            NSApp.activate(ignoringOtherApps: true)
-                            BubbleWindowController.shared.toggleChat()
-                        }
-                    }
-
-                    // Hide the invisible placeholder window
-                    DispatchQueue.main.async {
-                        for window in NSApp.windows where window.identifier?.rawValue == "main" {
-                            window.orderOut(nil)
-                        }
-                    }
-                }
-        }
-        .defaultSize(width: 1, height: 1)
-        .windowStyle(.hiddenTitleBar)
-
         MenuBarExtra("Erestor", image: "MenuBarIcon") {
             MenuBarView()
-                .environmentObject(chatService)
-                .environmentObject(actionHandler)
+                .environmentObject(appDelegate.chatService)
+                .environmentObject(appDelegate.actionHandler)
         }
         .menuBarExtraStyle(.window)
     }

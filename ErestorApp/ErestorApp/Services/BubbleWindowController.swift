@@ -12,7 +12,7 @@ class BubbleWindowController: ObservableObject {
 
     @Published var isChatVisible = false
 
-    private var bubblePanel: NSPanel?
+    private(set) var bubblePanel: NSPanel?
     private var chatPanel: KeyablePanel?
     private var timerPanel: NSPanel?
     private var timerLabel: NSTextField?
@@ -34,6 +34,11 @@ class BubbleWindowController: ObservableObject {
 
     private var isDragging = false
     private var dragOffset: NSPoint = .zero
+
+    deinit {
+        contextPollTimer?.invalidate()
+        timerPollTimer?.invalidate()
+    }
 
     private init() {}
 
@@ -393,7 +398,7 @@ class BubbleWindowController: ObservableObject {
                 let y = bubbleFrame.minY - 44
                 timerPanel.setFrameOrigin(NSPoint(x: x, y: y))
                 if !timerPanel.isVisible {
-                    timerPanel.orderFrontRegardless()
+                    timerPanel.orderFront(nil)
                 }
                 found = true
                 break
@@ -415,7 +420,7 @@ class BubbleWindowController: ObservableObject {
                 let y = bubbleFrame.minY - 44
                 timerPanel.setFrameOrigin(NSPoint(x: x, y: y))
                 if !timerPanel.isVisible {
-                    timerPanel.orderFrontRegardless()
+                    timerPanel.orderFront(nil)
                 }
             } else {
                 timerPanel.orderOut(nil)
@@ -628,6 +633,18 @@ class KeyablePanel: NSPanel {
             return
         }
         super.keyDown(with: event)
+    }
+
+    override func resignKey() {
+        super.resignKey()
+        // Close chat when clicking outside — but not if clicking the bubble (toggle handles that)
+        DispatchQueue.main.async {
+            let bubble = BubbleWindowController.shared
+            guard bubble.isChatVisible else { return }
+            // Check if the bubble panel became key (user clicked the bubble)
+            if bubble.bubblePanel?.isKeyWindow == true { return }
+            bubble.hideChat()
+        }
     }
 }
 

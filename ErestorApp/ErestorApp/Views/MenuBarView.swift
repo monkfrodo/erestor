@@ -3,7 +3,6 @@ import SwiftUI
 struct MenuBarView: View {
     @EnvironmentObject var chatService: ChatService
     @State private var quickInput = ""
-@Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(spacing: 10) {
@@ -64,7 +63,7 @@ struct MenuBarView: View {
                 .opacity(0.5)
 
             Button {
-                openWindow(id: "main")
+                BubbleWindowController.shared.showChat()
             } label: {
                 HStack {
                     Image(systemName: "brain.head.profile")

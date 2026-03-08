@@ -69,7 +69,7 @@ struct ChatWebViewVC: NSViewControllerRepresentable {
             // Streaming transitioned from true → false. Ensure the WebView cursor is removed.
             // This covers cases where the .finished delta was missed or not yet processed.
             let lastMsg = messages.last
-            let finalText = lastMsg?.role == .assistant ? Self.escapeForJS(lastMsg!.text) : ""
+            let finalText = lastMsg.flatMap { $0.role == .assistant ? Self.escapeForJS($0.text) : nil } ?? ""
             let finalTs = lastMsg?.timestamp ?? ""
             webView.evaluateJavaScript("finalizeStream(\"\(finalText)\", \"\(finalTs)\")")
             coordinator.streamFinishedMessageCount = messages.count
@@ -93,18 +93,30 @@ struct ChatWebViewVC: NSViewControllerRepresentable {
             switch delta.kind {
             case .started:
                 // Create the streaming message container in the WebView
-                webView.evaluateJavaScript("beginStream(\"\(delta.timestamp)\")")
+                webView.evaluateJavaScript("beginStream(\"\(delta.timestamp)\")") { _, error in
+                    if let error = error {
+                        logger.error("JS beginStream failed: \(error.localizedDescription)")
+                    }
+                }
                 webView.evaluateJavaScript("setLoading(false)")
 
             case .delta:
                 // Append new token text to the streaming message
                 let escaped = Self.escapeForJS(delta.text)
-                webView.evaluateJavaScript("appendStreamChunk(\"\(escaped)\")")
+                webView.evaluateJavaScript("appendStreamChunk(\"\(escaped)\")") { _, error in
+                    if let error = error {
+                        logger.error("JS appendStreamChunk failed: \(error.localizedDescription)")
+                    }
+                }
 
             case .finished:
                 // Finalize the streamed message with the clean full text
                 let escaped = Self.escapeForJS(delta.text)
-                webView.evaluateJavaScript("finalizeStream(\"\(escaped)\", \"\(delta.timestamp)\")")
+                webView.evaluateJavaScript("finalizeStream(\"\(escaped)\", \"\(delta.timestamp)\")") { _, error in
+                    if let error = error {
+                        logger.error("JS finalizeStream failed: \(error.localizedDescription)")
+                    }
+                }
                 // Mark that this message count was handled by streaming
                 coordinator.streamFinishedMessageCount = messages.count
                 coordinator.renderedCount = messages.count

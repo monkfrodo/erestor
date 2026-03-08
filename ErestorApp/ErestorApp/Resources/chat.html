@@ -46,7 +46,7 @@
     align-items: center;
     justify-content: center;
     padding: 40px;
-    gap: 16px;
+    gap: 6px;
     user-select: none;
   }
 
@@ -76,7 +76,7 @@
     gap: 6px;
     justify-content: center;
     max-width: 340px;
-    margin-top: 4px;
+    margin-top: 10px;
   }
 
   .cap-chip {
@@ -356,16 +356,37 @@
           "movido a eletricidade e obediência", "aqui não tem CLT"
         ];
         var el = document.getElementById('random-phrases');
-        var picked = [];
-        while (picked.length < 3 && phrases.length > 0) {
-          var i = Math.floor(Math.random() * phrases.length);
-          picked.push(phrases.splice(i, 1)[0]);
-        }
-        picked.forEach(function(p) {
-          var chip = document.createElement('span');
-          chip.className = 'cap-chip';
-          chip.textContent = p;
-          el.appendChild(chip);
+        var chip = document.createElement('span');
+        chip.className = 'cap-chip';
+        chip.style.transition = 'opacity 0.4s ease';
+        el.appendChild(chip);
+
+        var idx = Math.floor(Math.random() * phrases.length);
+        chip.textContent = phrases[idx];
+
+        var phraseInterval = setInterval(function() {
+          chip.style.opacity = '0';
+          setTimeout(function() {
+            idx = (idx + 1) % phrases.length;
+            chip.textContent = phrases[idx];
+            chip.style.opacity = '1';
+          }, 400);
+        }, 5000);
+
+        document.addEventListener('visibilitychange', function() {
+          if (document.hidden) {
+            clearInterval(phraseInterval);
+            phraseInterval = null;
+          } else if (!phraseInterval) {
+            phraseInterval = setInterval(function() {
+              chip.style.opacity = '0';
+              setTimeout(function() {
+                idx = (idx + 1) % phrases.length;
+                chip.textContent = phrases[idx];
+                chip.style.opacity = '1';
+              }, 400);
+            }, 5000);
+          }
         });
       })();
     </script>
@@ -446,6 +467,7 @@
   let streamingTimestamp = null;
   let streamingText = '';
   let streamScrollRAF = null;
+  let isStreaming = false;
 
   /**
    * Called when streaming starts. Creates the assistant message container
@@ -467,6 +489,8 @@
   let streamSafetyTimer = null;
 
   function beginStream(timestamp) {
+    if (isStreaming) return;
+    isStreaming = true;
     if (!hasMessages) {
       emptyState.style.display = 'none';
       hasMessages = true;
@@ -511,17 +535,20 @@
     return text.trim();
   }
 
+  let streamRenderRAF = null;
+
   function appendStreamChunk(text) {
     if (!streamingContent) return;
     streamingText += text;
-    var display = stripActions(streamingText);
-    streamingContent.innerHTML = renderMarkdown(display) + '<span class="stream-cursor"></span>';
 
-    // Throttled scroll -- avoid layout thrashing on every token
-    if (!streamScrollRAF) {
-      streamScrollRAF = requestAnimationFrame(() => {
+    // Debounce markdown rendering to ~50ms via RAF to avoid re-rendering on every token
+    if (!streamRenderRAF) {
+      streamRenderRAF = requestAnimationFrame(() => {
+        streamRenderRAF = null;
+        if (!streamingContent) return;
+        var display = stripActions(streamingText);
+        streamingContent.innerHTML = renderMarkdown(display) + '<span class="stream-cursor"></span>';
         messagesEl.scrollTo({ top: messagesEl.scrollHeight });
-        streamScrollRAF = null;
       });
     }
   }
@@ -531,6 +558,8 @@
    * clean text (cursor removed) and updates the timestamp.
    */
   function finalizeStream(fullText, timestamp) {
+    if (!isStreaming) return;
+    isStreaming = false;
     if (streamingContent) {
       streamingContent.innerHTML = renderMarkdown(stripActions(fullText));
     }
@@ -542,6 +571,7 @@
     streamingTimestamp = null;
     streamingText = '';
     streamScrollRAF = null;
+    streamRenderRAF = null;
 
     // Safety: remove any lingering stream cursors from the entire DOM
     document.querySelectorAll('.stream-cursor').forEach(function(el) { el.remove(); });
@@ -573,6 +603,8 @@
     streamingTimestamp = null;
     streamingText = '';
     streamScrollRAF = null;
+    streamRenderRAF = null;
+    isStreaming = false;
     setLoading(false);
   }
 

@@ -18,6 +18,10 @@ class ChatService: ObservableObject {
     private let baseURL = "http://127.0.0.1:8766"
     private var statusTimer: Timer?
 
+    deinit {
+        statusTimer?.invalidate()
+    }
+
     init() {
         Task {
             await checkStatus()
