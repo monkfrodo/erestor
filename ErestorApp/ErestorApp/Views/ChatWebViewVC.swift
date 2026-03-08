@@ -26,6 +26,12 @@ struct ChatWebViewVC: NSViewControllerRepresentable {
         let messages = chatService.messages
         let isLoading = chatService.isLoading
 
+        // --- Pre-check: if a .finished delta is pending, mark streamFinishedMessageCount NOW
+        //     to prevent the message rendering loop from duplicating the streamed message ---
+        if let delta = chatService.streamDelta, delta.id != coordinator.lastStreamDeltaID, delta.kind == .finished {
+            coordinator.streamFinishedMessageCount = messages.count
+        }
+
         // --- Render non-streaming messages (user messages + completed assistant messages) ---
         // During streaming, the assistant message is rendered via streamDelta below,
         // so we skip the last message if we're actively streaming and it hasn't been
@@ -45,8 +51,8 @@ struct ChatWebViewVC: NSViewControllerRepresentable {
         if renderCount > alreadySent {
             for i in alreadySent..<renderCount {
                 let msg = messages[i]
-                // Skip assistant messages that were rendered by streaming
-                if msg.role == .assistant && coordinator.streamFinishedMessageCount == i + 1 {
+                // Skip assistant messages that were/are being rendered by streaming
+                if msg.role == .assistant && (chatService.isStreaming || coordinator.streamFinishedMessageCount == i + 1) {
                     coordinator.renderedCount = i + 1
                     continue
                 }
