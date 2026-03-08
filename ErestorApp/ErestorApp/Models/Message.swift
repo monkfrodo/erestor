@@ -42,6 +42,13 @@ struct ContextSummary: Codable {
     }
 }
 
+struct PushEvent: Codable {
+    let type: String        // "message", "action", "context_update"
+    let text: String?
+    let actions: [ChatAction]?
+    let context: ContextSummary?
+}
+
 struct ChatAction: Codable, Identifiable {
     let id = UUID()
     let type: String

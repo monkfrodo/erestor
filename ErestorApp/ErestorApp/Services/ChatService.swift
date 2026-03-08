@@ -17,13 +17,16 @@ class ChatService: ObservableObject {
 
     private let baseURL = "http://127.0.0.1:8766"
     private var statusTask: Task<Void, Never>?
+    private var pushTask: Task<Void, Never>?
 
     deinit {
         statusTask?.cancel()
+        pushTask?.cancel()
     }
 
     init() {
         startStatusPolling()
+        startPushListener()
     }
 
     /// Network call runs completely OFF MainActor — no focus stealing
@@ -249,6 +252,93 @@ class ChatService: ObservableObject {
         }
     }
 
+    // MARK: - Push listener (SSE from bot → desktop)
+
+    private func startPushListener() {
+        pushTask = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self else { break }
+                await self.connectPushStream()
+                // Reconnect after 5s delay on disconnect
+                guard !Task.isCancelled else { break }
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+            }
+        }
+    }
+
+    /// Connect to /push/listen SSE and process events until disconnect
+    private func connectPushStream() async {
+        guard let url = URL(string: "\(baseURL)/push/listen") else { return }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 600 // 10 min — keepalives every 30s
+
+        do {
+            let (bytes, response) = try await URLSession.shared.bytes(for: request)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else { return }
+
+            logger.info("Push listener connected")
+
+            for try await line in bytes.lines {
+                guard !Task.isCancelled else { break }
+                // SSE format: lines starting with "data: " contain JSON
+                guard line.hasPrefix("data: ") else { continue }
+                let jsonStr = String(line.dropFirst(6))
+                guard let jsonData = jsonStr.data(using: .utf8) else { continue }
+
+                do {
+                    let event = try JSONDecoder().decode(PushEvent.self, from: jsonData)
+                    await handlePushEvent(event)
+                } catch {
+                    logger.error("Push event decode failed: \(error.localizedDescription)")
+                }
+            }
+        } catch {
+            if !Task.isCancelled {
+                logger.warning("Push listener disconnected: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Handle a single push event on the MainActor
+    private func handlePushEvent(_ event: PushEvent) async {
+        switch event.type {
+        case "message":
+            let text = event.text ?? ""
+            guard !text.isEmpty else { return }
+            let botMsg = ChatMessage(
+                role: .assistant,
+                text: text,
+                timestamp: Self.currentTime()
+            )
+            messages.append(botMsg)
+            streamDelta = StreamDelta(kind: .finished, text: botMsg.text, timestamp: botMsg.timestamp)
+            logger.info("Push message received: \(text.prefix(80))")
+
+            // Post notification so BubbleWindowController can show system notification
+            NotificationCenter.default.post(
+                name: .erestorPushMessageReceived,
+                object: nil,
+                userInfo: ["text": text]
+            )
+
+        case "action":
+            if let pushActions = event.actions, !pushActions.isEmpty {
+                actions = pushActions
+                logger.info("Push actions received: \(pushActions.map { $0.type })")
+            }
+
+        case "context_update":
+            if let newContext = event.context {
+                context = newContext
+                logger.info("Push context update received")
+            }
+
+        default:
+            logger.warning("Unknown push event type: \(event.type)")
+        }
+    }
+
     func clearHistory() async {
         guard let url = URL(string: "\(baseURL)/reset") else { return }
         var request = URLRequest(url: url)
@@ -359,4 +449,10 @@ struct StreamDelta: Equatable {
         // Always trigger update by using unique id
         return lhs.id == rhs.id
     }
+}
+
+// MARK: - Push notification name
+
+extension Notification.Name {
+    static let erestorPushMessageReceived = Notification.Name("erestorPushMessageReceived")
 }

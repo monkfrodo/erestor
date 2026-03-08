@@ -2,6 +2,7 @@ import AppKit
 import SwiftUI
 import WebKit
 import Combine
+import UserNotifications
 import os
 
 private let logger = Logger(subsystem: "org.integros.erestor", category: "BubbleWindow")
@@ -55,6 +56,7 @@ class BubbleWindowController: ObservableObject {
         observeStreaming()
         startTimerPolling()
         startBubbleWatchdog()
+        observePushMessages()
     }
 
     // MARK: - Bubble Panel
@@ -250,6 +252,42 @@ class BubbleWindowController: ObservableObject {
                 self?.renderMessages(messages)
             }
             .store(in: &messageCancellables)
+    }
+
+    // MARK: - Push message observation (show notification when chat is closed)
+
+    private func observePushMessages() {
+        NotificationCenter.default.addObserver(
+            forName: .erestorPushMessageReceived,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self else { return }
+            // Only send system notification if chat panel is NOT visible
+            if !self.isChatVisible {
+                let text = notification.userInfo?["text"] as? String ?? "Nova mensagem do Erestor"
+                self.sendPushNotification(text: text)
+            }
+        }
+    }
+
+    private func sendPushNotification(text: String) {
+        let content = UNMutableNotificationContent()
+        content.title = "Erestor"
+        content.body = text
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: nil // Deliver immediately
+        )
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error {
+                logger.error("Push notification failed: \(error.localizedDescription)")
+            }
+        }
     }
 
     private var messageCancellables = Set<AnyCancellable>()
