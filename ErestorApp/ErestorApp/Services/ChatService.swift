@@ -104,15 +104,25 @@ class ChatService: ObservableObject {
                 guard let jsonData = jsonStr.data(using: .utf8) else { continue }
 
                 // Try to decode as a chunk event
-                if let chunk = try? JSONDecoder().decode(SSEChunk.self, from: jsonData) {
+                let chunk: SSEChunk?
+                do {
+                    chunk = try JSONDecoder().decode(SSEChunk.self, from: jsonData)
+                } catch {
+                    logger.error("SSE decode failed: \(error.localizedDescription) — raw: \(jsonStr.prefix(200))")
+                    chunk = nil
+                }
+                if let chunk {
                     if let done = chunk.done, done {
-                        // Final event -- contains full_response and actions
+                        NSLog("[Erestor] DONE event received, actions count: \(chunk.actions?.count ?? -1)")
                         if let fullResponse = chunk.fullResponse {
                             accumulated = fullResponse
                         }
-                        if let responseActions = chunk.actions {
-                            pendingActions = responseActions
+                        // Execute actions IMMEDIATELY inside the loop
+                        if let responseActions = chunk.actions, !responseActions.isEmpty {
+                            NSLog("[Erestor] Publishing actions NOW: \(responseActions.map { $0.type })")
+                            actions = responseActions
                         }
+                        break
                     } else if let chunkText = chunk.text {
                         // Intermediate token chunk
                         accumulated += chunkText

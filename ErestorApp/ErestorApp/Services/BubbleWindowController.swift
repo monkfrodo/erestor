@@ -236,6 +236,7 @@ class BubbleWindowController: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] actions in
                 guard !actions.isEmpty else { return }
+                NSLog("[Erestor] actions received: \(actions.map { $0.type }), actionHandler nil? \(self?.actionHandler == nil)")
                 self?.actionHandler?.execute(actions)
             }
 
