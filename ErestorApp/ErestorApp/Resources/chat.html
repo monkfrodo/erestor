@@ -263,6 +263,14 @@
     flex-shrink: 0;
     user-select: none;
   }
+  .prompt-symbol.streaming {
+    animation: pulse-prompt 1.5s ease-in-out infinite;
+    color: #d4a06a;
+  }
+  @keyframes pulse-prompt {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
 
   #msg-input {
     flex: 1;
@@ -424,11 +432,21 @@
    * Called when streaming starts. Creates the assistant message container
    * with a blinking cursor, ready to receive token chunks.
    */
+  let _streamingActive = false;
+  let _queuedMessage = null;
+  const _promptSymbol = document.querySelector('.prompt-symbol');
+
   function setInputEnabled(enabled) {
     // Never disable the input — always let the user type
     msgInput.disabled = false;
     msgInput.style.opacity = '1';
+    _streamingActive = !enabled;
     msgInput.placeholder = enabled ? 'mensagem...' : 'respondendo...';
+    if (!enabled) {
+      _promptSymbol.classList.add('streaming');
+    } else {
+      _promptSymbol.classList.remove('streaming');
+    }
   }
 
   let streamSafetyTimer = null;
@@ -518,6 +536,19 @@
     setLoading(false);
     msgInput.focus();
     scrollToBottom();
+
+    // Flush queued message
+    if (_queuedMessage) {
+      const queued = _queuedMessage;
+      _queuedMessage = null;
+      setTimeout(function() {
+        try {
+          webkit.messageHandlers.chat.postMessage({ type: 'send', text: queued });
+        } catch(e) {
+          console.log('No native handler:', e);
+        }
+      }, 300);
+    }
   }
 
   function setLoading(show) {
@@ -569,6 +600,14 @@
     if (!text) return;
     msgInput.value = '';
     msgInput.style.height = 'auto';
+
+    if (_streamingActive) {
+      _queuedMessage = text;
+      addMessage('user', text, '');
+      showActionFeedback('mensagem na fila — enviada quando a resposta terminar');
+      return;
+    }
+
     try {
       webkit.messageHandlers.chat.postMessage({ type: 'send', text: text });
     } catch(e) {
