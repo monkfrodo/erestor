@@ -1,0 +1,64 @@
+{
+  "buildCommand" : {
+    "command" : "build",
+    "skipDependencies" : false,
+    "style" : "buildOnly"
+  },
+  "configuredTargets" : [
+    {
+      "guid" : "667b761dd6d89e84bf3346e5eaa64cdeb8277ed498551b3d61161cc2ec54a26b"
+    }
+  ],
+  "containerPath" : "/Users/imacke/projetos/erestor/ErestorApp/ErestorApp.xcodeproj",
+  "continueBuildingAfterErrors" : false,
+  "dependencyScope" : "workspace",
+  "enableIndexBuildArena" : false,
+  "hideShellScriptEnvironment" : false,
+  "parameters" : {
+    "action" : "build",
+    "activeArchitecture" : "arm64",
+    "activeRunDestination" : {
+      "disableOnlyActiveArch" : false,
+      "platform" : "macosx",
+      "sdk" : "macosx26.2",
+      "sdkVariant" : "macos",
+      "supportedArchitectures" : [
+        "arm64e",
+        "arm64",
+        "x86_64"
+      ],
+      "targetArchitecture" : "arm64"
+    },
+    "arenaInfo" : {
+      "buildIntermediatesPath" : "/Users/imacke/projetos/erestor/ErestorApp/build/DerivedData/Build/Intermediates.noindex",
+      "buildProductsPath" : "/Users/imacke/projetos/erestor/ErestorApp/build/DerivedData/Build/Products",
+      "derivedDataPath" : "/Users/imacke/projetos/erestor/ErestorApp/build/DerivedData",
+      "indexDataStoreFolderPath" : "/Users/imacke/projetos/erestor/ErestorApp/build/DerivedData/Index.noindex/DataStore",
+      "indexEnableDataStore" : true,
+      "indexPCHPath" : "/Users/imacke/projetos/erestor/ErestorApp/build/DerivedData/Index.noindex/PrecompiledHeaders",
+      "pchPath" : "/Users/imacke/projetos/erestor/ErestorApp/build/DerivedData/Build/Intermediates.noindex/PrecompiledHeaders"
+    },
+    "configurationName" : "Debug",
+    "overrides" : {
+      "commandLine" : {
+        "table" : {
+
+        }
+      },
+      "synthesized" : {
+        "table" : {
+          "ACTION" : "build",
+          "ENABLE_PREVIEWS" : "NO",
+          "ENABLE_XOJIT_PREVIEWS" : "YES",
+          "ONLY_ACTIVE_ARCH" : "YES"
+        }
+      }
+    }
+  },
+  "schemeCommand" : "launch",
+  "showNonLoggedProgress" : true,
+  "useDryRun" : false,
+  "useImplicitDependencies" : true,
+  "useLegacyBuildLocations" : false,
+  "useParallelTargets" : true
+}

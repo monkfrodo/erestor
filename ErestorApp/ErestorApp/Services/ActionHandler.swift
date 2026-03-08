@@ -6,22 +6,12 @@ import os
 private let logger = Logger(subsystem: "org.integros.erestor", category: "ActionHandler")
 
 @MainActor
-class ActionHandler: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
+class ActionHandler: NSObject, ObservableObject {
     static let shared = ActionHandler()
 
     private override init() {
         super.init()
-        UNUserNotificationCenter.current().delegate = self
         requestNotificationPermission()
-    }
-
-    // Show notifications even when app is in foreground (LSUIElement)
-    nonisolated func userNotificationCenter(
-        _ center: UNUserNotificationCenter,
-        willPresent notification: UNNotification,
-        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
-    ) {
-        completionHandler([.banner, .sound])
     }
 
     // MARK: - Execute actions from Claude response

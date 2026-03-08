@@ -386,6 +386,7 @@ class BubbleWindowController: ObservableObject {
             var prevDescText = ""
             var prevVisible: Bool = false
             var cachedEventTitle: String? = nil
+            var contextRefreshCounter = 0
 
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s
@@ -450,7 +451,8 @@ class BubbleWindowController: ObservableObject {
                 }
 
                 // Refresh cached event title every 30 cycles (30s)
-                if Int(Date().timeIntervalSince1970) % 30 == 0 {
+                contextRefreshCounter += 1
+                if contextRefreshCounter % 30 == 0 {
                     if let url = URL(string: "http://127.0.0.1:8766/context") {
                         if let (data, _) = try? await URLSession.shared.data(from: url),
                            let ctx = try? JSONDecoder().decode(ContextSummary.self, from: data) {
