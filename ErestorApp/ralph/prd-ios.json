@@ -1,0 +1,60 @@
+{
+  "project": "ErestorApp",
+  "branchName": "ralph/ios-target",
+  "description": "Target iOS no mesmo projeto Xcode — compartilhar SwiftUI views entre macOS e iPhone",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Add iOS target to XcodeGen project.yml",
+      "description": "As a developer, I need an iOS target in the same Xcode project so both platforms share code.",
+      "acceptanceCriteria": [
+        "Add 'ErestorApp-iOS' target in project.yml with platform: iOS, deploymentTarget: 17.0",
+        "iOS target includes shared source files: Models/, Services/ChatService.swift, Services/ErestorConfig.swift, Views/ (all SwiftUI views)",
+        "iOS target excludes macOS-specific files: Services/BubbleWindowController.swift, Services/GlobalHotkey.swift, Views/ChatWebViewVC.swift (if still exists)",
+        "iOS target has its own Info.plist with UILaunchScreen and required capabilities",
+        "Add iOS-specific entitlements file with push notification capability",
+        "xcodegen generate succeeds and creates both targets",
+        "xcodebuild -scheme ErestorApp (macOS) still builds successfully",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "File: ~/projetos/erestor/ErestorApp/project.yml. The current project has only one macOS target. XcodeGen supports multi-platform targets. Use #if os(macOS) / #if os(iOS) in shared files where platform-specific code is needed. The SwiftUI views from the panel redesign (Views/) should compile for both platforms."
+    },
+    {
+      "id": "US-002",
+      "title": "Create iOS app entry point and main view",
+      "description": "As an iPhone user, I want a fullscreen Erestor app showing the context panel.",
+      "acceptanceCriteria": [
+        "Create ErestorApp/iOS/ErestorApp_iOS.swift with @main App struct",
+        "Main view shows ContextPanelView fullscreen (no bubble, no floating panel)",
+        "iOS app requests notification permissions on launch",
+        "iOS app registers for remote notifications (APNs) and sends device token to backend via POST /api/device/register",
+        "Use #if os(iOS) guards in shared files (ChatService, ErestorConfig) where needed",
+        "ErestorConfig points to same API URL (erestor-api.kevineger.com.br)",
+        "iOS target builds successfully (xcodebuild -scheme ErestorApp-iOS -destination 'generic/platform=iOS')",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "The ContextPanelView from the panel redesign should work on both platforms. The iOS version is fullscreen — no NSPanel, no bubble. The mobile prototype in prototipo-painel.html shows the phone layout with extra agenda section. Device token registration uses the /api/device/register endpoint from the APNs backend PRD."
+    },
+    {
+      "id": "US-003",
+      "title": "Add day timeline view for mobile",
+      "description": "As an iPhone user, I want to see my full day agenda since the phone has more vertical space.",
+      "acceptanceCriteria": [
+        "Create ErestorApp/Views/DayTimelineView.swift — vertical list of today's events",
+        "Each row shows: time (mono 10pt muted, 38pt min width) + event title (11pt, colored by type: green=work, dim=other)",
+        "DayTimelineView accepts: events ([ContextSummary.NextEvent]) or equivalent array",
+        "Section header 'agenda' in mono 9pt dim, uppercase, 1px letter spacing",
+        "DayTimelineView only appears on iOS (use #if os(iOS) or check horizontalSizeClass)",
+        "Add DayTimelineView to ContextPanelView between tasks and chat input on iOS",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "Reference: the 'agenda' section in the mobile prototype (prototipo-painel.html, around line 541-566). Shows times and event names in a compact vertical list. The /api/context endpoint already returns today_events array."
+    }
+  ]
+}
