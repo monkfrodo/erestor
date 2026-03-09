@@ -702,7 +702,7 @@
   }
 
   function stripActions(text) {
-    text = text.replace(/\[ACTION:\w+\|[^\]]*\]/g, '');
+    text = text.replace(/\[ACTION:[^\]]*\]/g, '');
     text = text.replace(/\[ACTION:[^\]]*$/g, '');
     return text.trim();
   }
