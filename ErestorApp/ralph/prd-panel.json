@@ -51,7 +51,7 @@
         "Typecheck passes"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Reference: .tasks, .poll, .gate CSS classes in prototype. Poll energy has 5 buttons (1-morto, 2-baixa, 3-ok, 4-boa, 5-pico). Quality has 4 (perdi, meh, ok, flow). Gate has from label 'erestor · gate' and 2 buttons. Use withAnimation for slideIn and fade effects."
     },
     {
@@ -70,7 +70,7 @@
         "Typecheck passes"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "Reference: .cbox, .crow, .cin, .cgo, .chat-m CSS classes in prototype. History expands upward with animation (max-height transition). The chat functionality already exists in ChatService — this just needs to call chatService.sendMessageStreaming()."
     },
     {
@@ -88,7 +88,7 @@
         "Typecheck passes"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "The /api/context response structure is in ChatService.swift (ContextSummary). Push events come through ChatService push polling. The panel width should be 288pt (matching prototype). Use @StateObject or @ObservedObject for ChatService."
     },
     {
