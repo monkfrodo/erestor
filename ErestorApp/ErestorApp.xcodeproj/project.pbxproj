@@ -22,6 +22,7 @@
 		22C8CAADAAAAA9B1D620B924 /* PollCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DED315BF82B5065424B760C7 /* PollCardView.swift */; };
 		296A1A6763FA759F01C6ADA4 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A6A396AE8B71CF2FE102BD /* TaskListView.swift */; };
 		33C6219B4048DE979B04D87A /* chat.html in Resources */ = {isa = PBXBuildFile; fileRef = 27FCF827EAD5CCE3CE63CD1A /* chat.html */; };
+		33FC924AA85C02F9D61D5BD8 /* DayTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13735668283F08864CE8F31 /* DayTimelineView.swift */; };
 		3A2790185905E51E6E8C9F0F /* ContextPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B12C08A771682A848B7AB049 /* ContextPanelView.swift */; };
 		3DB79635B286D9AEBCEF8038 /* ChatHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8FB6927863F16D6663132FB /* ChatHistoryView.swift */; };
 		492BAB83C55D9443874A5A3F /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 13C54B088922E68C9346B5D6 /* Carbon.framework */; };
@@ -33,6 +34,7 @@
 		74E039BB676FCAE9E0E60E52 /* GateAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C89AE433FD59FBBCA5CAF0C /* GateAlertView.swift */; };
 		7A58AC9E8A315C4B2B42C459 /* GlobalHotkey.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4D04077E89AF5E8483CEF1 /* GlobalHotkey.swift */; };
 		7EC1919EC5FA9800AAA3A3C6 /* PollCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DED315BF82B5065424B760C7 /* PollCardView.swift */; };
+		813DD61BD8B79F3BEA6E5B91 /* DayTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13735668283F08864CE8F31 /* DayTimelineView.swift */; };
 		880A0E0EFC6D05632A4783EC /* TimerChipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA726871DCF9235C77FC9C2 /* TimerChipView.swift */; };
 		A709D99DAA0C4B37AF788C9A /* chat.html in Resources */ = {isa = PBXBuildFile; fileRef = 27FCF827EAD5CCE3CE63CD1A /* chat.html */; };
 		A72AC1221332A99D45C1BD80 /* NextEventView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B06D8F33A486DBEC78AA79D5 /* NextEventView.swift */; };
@@ -73,6 +75,7 @@
 		C68E83AC4D75DB1530301B82 /* BubbleWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleWindowController.swift; sourceTree = "<group>"; };
 		CAF21A8BB3986DAF6CC78D41 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CB69E20FF896205BF7CF7F01 /* ErestorApp_iOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErestorApp_iOS.swift; sourceTree = "<group>"; };
+		D13735668283F08864CE8F31 /* DayTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayTimelineView.swift; sourceTree = "<group>"; };
 		DED315BF82B5065424B760C7 /* PollCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollCardView.swift; sourceTree = "<group>"; };
 		E95D84A05DD7C977E0DD5106 /* ChatInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatInputView.swift; sourceTree = "<group>"; };
 		EA4D04077E89AF5E8483CEF1 /* GlobalHotkey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotkey.swift; sourceTree = "<group>"; };
@@ -136,6 +139,7 @@
 				E95D84A05DD7C977E0DD5106 /* ChatInputView.swift */,
 				A7CF7982BA4E26DEEFDFBFA2 /* ChatWebViewVC.swift */,
 				B12C08A771682A848B7AB049 /* ContextPanelView.swift */,
+				D13735668283F08864CE8F31 /* DayTimelineView.swift */,
 				4C1EF325B321C9D285D69B3C /* DesignSystem.swift */,
 				44FE0FD2462C1E7A9519C8E3 /* EventCardView.swift */,
 				2C89AE433FD59FBBCA5CAF0C /* GateAlertView.swift */,
@@ -305,6 +309,7 @@
 				66CBB98D6A222AC1C0408327 /* ChatService.swift in Sources */,
 				14A8652CDCA80FF082FEB68E /* Color+Hex.swift in Sources */,
 				3A2790185905E51E6E8C9F0F /* ContextPanelView.swift in Sources */,
+				813DD61BD8B79F3BEA6E5B91 /* DayTimelineView.swift in Sources */,
 				014325E2BB5D420B0EE15BEE /* DesignSystem.swift in Sources */,
 				C1AA7865096C33F1411930B4 /* ErestorApp_iOS.swift in Sources */,
 				CFF9E6EF6C73E0C3C9D1C28E /* ErestorConfig.swift in Sources */,
@@ -330,6 +335,7 @@
 				52C7AF71265210F649FC9098 /* ChatWebViewVC.swift in Sources */,
 				E66F0524475D36B073F783D3 /* Color+Hex.swift in Sources */,
 				0AE55DB2632217F57E14E346 /* ContextPanelView.swift in Sources */,
+				33FC924AA85C02F9D61D5BD8 /* DayTimelineView.swift in Sources */,
 				E9D786C715E9A2FE3F7AC585 /* DesignSystem.swift in Sources */,
 				E7522F220C723B0BD7E6EEDF /* ErestorApp.swift in Sources */,
 				C8300DEDFED8150CCF240297 /* ErestorConfig.swift in Sources */,

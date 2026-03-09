@@ -5,3 +5,5 @@ __pycache__/
 *.log
 .env
 ErestorApp/build/
+ErestorApp/.claude-flow/
+ErestorApp/.claude/

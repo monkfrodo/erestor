@@ -8,12 +8,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     private var windowCleanupTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Singleton guard — prevent multiple instances (KeepAlive can restart while old is still alive)
+        // Singleton guard — kill stale instances instead of exiting
+        // (KeepAlive can restart us while old process is still in the process table)
         let runningInstances = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "")
-        if runningInstances.count > 1 {
-            NSLog("[Erestor] Another instance already running — exiting")
-            NSApp.terminate(nil)
-            return
+        let others = runningInstances.filter { $0 != NSRunningApplication.current }
+        if !others.isEmpty {
+            NSLog("[Erestor] Found \(others.count) other instance(s) — terminating them")
+            for other in others {
+                other.terminate()
+            }
+            // Give the OS a moment to clean up the old processes
+            Thread.sleep(forTimeInterval: 0.5)
+            // Force-kill any that didn't terminate gracefully
+            let stillRunning = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "")
+                .filter { $0 != NSRunningApplication.current }
+            for stale in stillRunning {
+                stale.forceTerminate()
+            }
         }
         // Nuke state restoration completely
         NSWindow.allowsAutomaticWindowTabbing = false
