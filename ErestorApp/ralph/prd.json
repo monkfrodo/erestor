@@ -1,0 +1,79 @@
+{
+  "project": "ErestorApp",
+  "branchName": "ralph/session17-notifications",
+  "description": "Session 17 — Fix notification dot, type push events, register macOS notification categories with action buttons",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Fix notification dot clipping on bubble",
+      "description": "As a user, I want to see a red notification dot on the bubble when the bot responds while the chat is closed, so I know there's a new message.",
+      "acceptanceCriteria": [
+        "Notification dot (14pt, #c25a4a) is fully visible at top-right of the 64pt bubble circle",
+        "Wrapper NSView frame is large enough to contain both the bubble circle and the dot without clipping",
+        "Dot has 2pt dark border (#28241f) for contrast against any background",
+        "DragView covers the full wrapper area so drag still works with the larger panel",
+        "Panel frame origin calculation accounts for the extra padding (uses panelSize, not bubbleSize for screen edge math)",
+        "showNotificationDot() fades in (0.2s), hideNotificationDot() fades out (0.15s)",
+        "Dot shows when stream finishes with chat closed, and when push message arrives with chat closed",
+        "Dot hides when showChat() is called",
+        "Typecheck passes (xcodebuild builds without errors)"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "File: ErestorApp/Services/BubbleWindowController.swift. The wrapper approach is already implemented but may have frame math issues. Verify that NSRect(x: bubbleSize - dotSize/2, y: bubbleSize - dotSize/2, width: dotSize, height: dotSize) positions correctly within the wrapper NSRect(x: 0, y: 0, width: bubbleSize + padding, height: bubbleSize + padding). Build command: cd ~/projetos/erestor/ErestorApp && xcodegen generate && xcodebuild -project ErestorApp.xcodeproj -scheme ErestorApp -configuration Debug -derivedDataPath build/DerivedData build"
+    },
+    {
+      "id": "US-002",
+      "title": "Type push events in Python backend — add poll_energy, poll_quality, gate_inform, reminder",
+      "description": "As the system, I need typed push events so the desktop app can render different UI (poll cards, alert cards, reminders) instead of treating everything as a plain message.",
+      "acceptanceCriteria": [
+        "gate.py _deliver_to_desktop() accepts an event_type parameter (default 'message' for backward compat)",
+        "New push event types supported: 'poll_energy', 'poll_quality', 'gate_inform', 'reminder'",
+        "poll_energy payload: {type: 'poll_energy', text: prompt_text, options: ['1-morto','2-baixa','3-ok','4-boa','5-pico']}",
+        "poll_quality payload: {type: 'poll_quality', text: prompt_text, options: ['perdi','meh','ok','flow']}",
+        "gate_inform payload: {type: 'gate_inform', text: alert_text, severity: 'amber'|'red', actions: [...]}",
+        "reminder payload: {type: 'reminder', text: reminder_text}",
+        "Existing 'message' type push events continue to work unchanged",
+        "Python syntax check passes (python3 -m py_compile erestor/gate.py)"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "File: ~/claude-sync/produtividade/erestor/gate.py (function _deliver_to_desktop around line 548) and ~/claude-sync/produtividade/erestor_api.py (push_event/drain_push_events around line 212). IMPORTANT: This story runs in ~/claude-sync/produtividade/, NOT in the ErestorApp directory. The push events are delivered via HTTP POST to /api/push/deliver and polled by the app via GET /api/push/pending."
+    },
+    {
+      "id": "US-003",
+      "title": "Handle typed push events in Swift app",
+      "description": "As the app, I need to handle poll_energy, poll_quality, gate_inform, and reminder push events differently from plain messages, so the UI can render appropriate cards.",
+      "acceptanceCriteria": [
+        "PushEvent model in Message.swift has typed enum or string for type field covering: message, poll_energy, poll_quality, gate_inform, reminder",
+        "PushEvent includes optional fields: options ([String]), severity (String), actions ([ChatAction])",
+        "ChatService.handlePushEvent() routes each type correctly: message → existing behavior, poll_energy/poll_quality → post notification with type info, gate_inform → post notification with severity, reminder → post notification",
+        "NotificationCenter userInfo includes event type and payload so BubbleWindowController can differentiate",
+        "BubbleWindowController.sendPushNotification() uses event type to set notification title (e.g. 'Erestor — Enquete' for polls, 'Erestor — Alerta' for gate_inform)",
+        "All existing message-type push events continue to work unchanged",
+        "Typecheck passes (xcodebuild builds without errors)"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "Files: ErestorApp/Models/Message.swift (PushEvent struct), ErestorApp/Services/ChatService.swift (handlePushEvent), ErestorApp/Services/BubbleWindowController.swift (sendPushNotification, observePushMessages). Depends on US-002 for backend payload format."
+    },
+    {
+      "id": "US-004",
+      "title": "Register macOS notification categories with action buttons",
+      "description": "As a user, I want notification buttons so I can respond to polls and alerts directly from the macOS notification banner without opening the chat.",
+      "acceptanceCriteria": [
+        "UNNotificationCategory 'POLL_ENERGY' registered with 4 actions: '1-morto', '2-baixa', '3-ok', '4-boa' (max 4 buttons, 5th option opens panel)",
+        "UNNotificationCategory 'POLL_QUALITY' registered with 4 actions: 'perdi', 'meh', 'ok', 'flow'",
+        "UNNotificationCategory 'GATE_INFORM' registered with 2 actions: 'Ver' (opens chat) and 'Dispensar' (dismisses)",
+        "UNNotificationCategory 'REMINDER' registered with 2 actions: 'Ver' and 'Dispensar'",
+        "Categories registered in AppDelegate.applicationDidFinishLaunching via UNUserNotificationCenter.current().setNotificationCategories()",
+        "sendPushNotification sets content.categoryIdentifier based on push event type",
+        "didReceive response handler reads actionIdentifier and sends response back to backend via POST /api/push/respond",
+        "Typecheck passes (xcodebuild builds without errors)"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "Files: ErestorApp/ErestorApp.swift (AppDelegate — register categories in launch, handle didReceive), ErestorApp/Services/BubbleWindowController.swift (set categoryIdentifier in sendPushNotification). Note: macOS notification actions are limited to 4 buttons max. Energy poll has 5 options so the '5-pico' option should open the panel instead. The /api/push/respond endpoint does not exist yet — it needs to be created in erestor_api.py (backend, separate repo)."
+    }
+  ]
+}
