@@ -17,12 +17,8 @@ class ActionHandler: NSObject, ObservableObject {
     // MARK: - Execute actions from Claude response
 
     private func showFeedback(_ text: String) {
-        let escaped = text
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-        BubbleWindowController.shared.chatWebVC?.webView?.evaluateJavaScript(
-            "showActionFeedback(\"\(escaped)\")"
-        )
+        // Feedback is now shown via ChatService messages (SwiftUI observes automatically)
+        NSLog("[Erestor] Action feedback: \(text)")
     }
 
     private static let actionLabels: [String: String] = [

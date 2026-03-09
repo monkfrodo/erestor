@@ -174,8 +174,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     private func closeStaleWindows() {
         let bubble = BubbleWindowController.shared
         let managedNumbers: Set<Int> = Set([
-            bubble.bubblePanel?.windowNumber,
-            bubble.chatWebVC?.webView?.window?.windowNumber
+            bubble.bubblePanel?.windowNumber
         ].compactMap { $0 })
 
         for window in NSApp.windows {

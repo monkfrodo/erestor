@@ -107,7 +107,7 @@
         "Typecheck passes"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": "This is the integration story. BubbleWindowController currently uses ChatWebViewVC (WKWebView) and evaluateJavaScript calls. Replace with NSHostingView wrapping ContextPanelView. The ChatService already has all the data — just need to bind it to SwiftUI. Keep the WebView code commented out (not deleted) in case of rollback."
     }
   ]

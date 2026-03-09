@@ -1,6 +1,5 @@
 import AppKit
 import SwiftUI
-import WebKit
 import Combine
 import UserNotifications
 import os
@@ -19,17 +18,11 @@ class BubbleWindowController: ObservableObject {
     var chatService: ChatService?
     private var actionHandler: ActionHandler?
 
-    // Header elements
-    private var headerDot: NSView?
-    private var headerTimeLabel: NSTextField?
-
     // Notification badge on bubble
     private var notificationDot: NSView?
 
-    var chatWebVC: ChatWebViewController?
     private var streamCancellable: AnyCancellable?
     private var actionsCancellable: AnyCancellable?
-    private var serverOnlineCancellable: AnyCancellable?
     private let bubbleSize: CGFloat = 64
     private let chatWidth: CGFloat = 320
     private let chatHeight: CGFloat = 540
@@ -61,7 +54,6 @@ class BubbleWindowController: ObservableObject {
         startContextPolling()
         startBubbleWatchdog()
         observePushMessages()
-        observeServerOnline()
     }
 
     // MARK: - Bubble Panel
@@ -149,7 +141,9 @@ class BubbleWindowController: ObservableObject {
         panel.orderFront(nil)
     }
 
-    // MARK: - Chat Panel (native, no SwiftUI wrapper)
+    // MARK: - Chat Panel (SwiftUI ContextPanelView)
+
+    private var hostingView: NSHostingView<ContextPanelView>?
 
     private func createChatPanel() {
         guard let chatService else { return }
@@ -162,7 +156,7 @@ class BubbleWindowController: ObservableObject {
         )
         panel.level = .floating
         panel.isOpaque = false
-        panel.backgroundColor = NSColor(red: 0.118, green: 0.110, blue: 0.102, alpha: 0.98) // #1e1c1a
+        panel.backgroundColor = .clear
         panel.hasShadow = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.hidesOnDeactivate = false
@@ -171,108 +165,21 @@ class BubbleWindowController: ObservableObject {
         panel.maxSize = NSSize(width: 600, height: 900)
         panel.isFloatingPanel = true
 
-        // Container view with rounded corners
-        let container = NSView(frame: NSRect(x: 0, y: 0, width: chatWidth, height: chatHeight))
-        container.wantsLayer = true
-        container.layer?.cornerRadius = 12
-        container.layer?.masksToBounds = true
-        container.layer?.borderColor = NSColor(red: 0.29, green: 0.247, blue: 0.235, alpha: 0.6).cgColor
-        container.layer?.borderWidth = 1
-        container.autoresizingMask = [.width, .height]
+        let panelView = ContextPanelView(
+            chatService: chatService,
+            onClose: { [weak self] in self?.hideChat() }
+        )
+        let hosting = NSHostingView(rootView: panelView)
+        hosting.frame = NSRect(x: 0, y: 0, width: chatWidth, height: chatHeight)
+        hosting.autoresizingMask = [.width, .height]
+        self.hostingView = hosting
 
-        // Header bar
-        let headerHeight: CGFloat = 32
-        let header = createHeaderView(width: chatWidth, height: headerHeight)
-        header.frame = NSRect(x: 0, y: chatHeight - headerHeight, width: chatWidth, height: headerHeight)
-        header.autoresizingMask = [.width, .minYMargin]
-        container.addSubview(header)
-
-        // WebView (persistent — created once, never destroyed)
-        let vc = ChatWebViewController()
-        vc.coordinator = ChatWebViewVC.Coordinator(chatService: chatService)
-        vc.loadView()
-
-        guard let webView = vc.webView else { return }
-        webView.frame = NSRect(x: 0, y: 0, width: chatWidth, height: chatHeight - headerHeight)
-        webView.autoresizingMask = [.width, .height]
-        container.addSubview(webView)
-
-        vc.coordinator?.webView = webView
-        self.chatWebVC = vc
-
-        // Resize handle (bottom-right corner)
-        let resizeHandle = ResizeHandleView(frame: NSRect(x: chatWidth - 20, y: 0, width: 20, height: 20))
-        resizeHandle.autoresizingMask = [.minXMargin, .maxYMargin]
-        container.addSubview(resizeHandle)
-
-        panel.contentView = container
+        panel.contentView = hosting
         self.chatPanel = panel
     }
 
-    private func createHeaderView(width: CGFloat, height: CGFloat) -> NSView {
-        let header = DraggableHeaderView(frame: NSRect(x: 0, y: 0, width: width, height: height))
-        header.wantsLayer = true
-        header.layer?.backgroundColor = NSColor(red: 0.118, green: 0.110, blue: 0.102, alpha: 1).cgColor // #1e1c1a
-
-        // Status dot
-        let dot = NSView(frame: NSRect(x: 12, y: 10, width: 5, height: 5))
-        dot.wantsLayer = true
-        dot.layer?.cornerRadius = 2.5
-        dot.layer?.backgroundColor = NSColor(red: 0.29, green: 0.62, blue: 0.41, alpha: 1).cgColor // green
-        dot.autoresizingMask = [.maxXMargin]
-        header.addSubview(dot)
-        self.headerDot = dot
-
-        // Time label
-        let timeLabel = NSTextField(labelWithString: "")
-        timeLabel.font = NSFont.monospacedSystemFont(ofSize: 10, weight: .regular)
-        timeLabel.textColor = NSColor(red: 0.42, green: 0.36, blue: 0.31, alpha: 1) // --subtle
-        timeLabel.frame = NSRect(x: 22, y: 4, width: 80, height: 16)
-        timeLabel.autoresizingMask = [.maxXMargin]
-        header.addSubview(timeLabel)
-        self.headerTimeLabel = timeLabel
-        updateHeaderTime()
-
-        // Close button
-        let closeBtn = NSButton(frame: NSRect(x: width - 26, y: 5, width: 16, height: 16))
-        closeBtn.bezelStyle = .inline
-        closeBtn.isBordered = false
-        closeBtn.title = "\u{00d7}"
-        closeBtn.font = NSFont.systemFont(ofSize: 13)
-        closeBtn.contentTintColor = NSColor(red: 0.24, green: 0.22, blue: 0.20, alpha: 1) // --muted
-        closeBtn.target = self
-        closeBtn.action = #selector(closeChatAction)
-        closeBtn.autoresizingMask = [.minXMargin]
-        header.addSubview(closeBtn)
-
-        return header
-    }
-
-    private func updateHeaderTime() {
-        let fmt = DateFormatter()
-        fmt.locale = Locale(identifier: "pt_BR")
-        fmt.timeZone = TimeZone(identifier: "America/Sao_Paulo")
-        fmt.dateFormat = "EEE HH:mm"
-        let text = fmt.string(from: Date()).lowercased()
-            .replacingOccurrences(of: ".", with: "")
-        headerTimeLabel?.stringValue = text
-    }
-
-    private func observeServerOnline() {
-        guard let chatService else { return }
-        serverOnlineCancellable = chatService.$serverOnline
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] online in
-                let color: NSColor = online
-                    ? NSColor(red: 0.29, green: 0.62, blue: 0.41, alpha: 1)
-                    : NSColor(red: 0.24, green: 0.22, blue: 0.20, alpha: 1)
-                self?.headerDot?.layer?.backgroundColor = color.cgColor
-            }
-    }
-
-    @objc private func closeChatAction() {
-        hideChat()
-    }
+    // Header is now managed by ContextPanelView (SwiftUI)
+    // Server online state is observed directly by ContextPanelView via ChatService
 
     // MARK: - Notification dot
 
@@ -302,29 +209,14 @@ class BubbleWindowController: ObservableObject {
     private func observeStreaming() {
         guard let chatService else { return }
 
+        // SwiftUI ContextPanelView handles rendering via @ObservedObject.
+        // We only observe here for notification dot + action execution.
         streamCancellable = chatService.$streamDelta
             .receive(on: DispatchQueue.main)
             .sink { [weak self] delta in
-                guard let self, let delta, let webView = self.chatWebVC?.webView else { return }
-                guard let coord = self.chatWebVC?.coordinator, delta.id != coord.lastStreamDeltaID else { return }
-                coord.lastStreamDeltaID = delta.id
-
-                switch delta.kind {
-                case .started:
-                    webView.evaluateJavaScript("beginStream(\"\(delta.timestamp)\")")
-                    webView.evaluateJavaScript("setLoading(false)")
-                case .delta:
-                    let escaped = ChatWebViewVC.escapeForJS(delta.text)
-                    webView.evaluateJavaScript("appendStreamChunk(\"\(escaped)\")")
-                case .finished:
-                    let escaped = ChatWebViewVC.escapeForJS(delta.text)
-                    webView.evaluateJavaScript("finalizeStream(\"\(escaped)\", \"\(delta.timestamp)\")")
-                    coord.streamFinishedMessageCount = chatService.messages.count
-                    coord.renderedCount = chatService.messages.count
-                    // Show notification dot if chat is closed
-                    if !self.isChatVisible {
-                        self.showNotificationDot()
-                    }
+                guard let self, let delta else { return }
+                if delta.kind == .finished && !self.isChatVisible {
+                    self.showNotificationDot()
                 }
             }
 
@@ -335,14 +227,6 @@ class BubbleWindowController: ObservableObject {
                 NSLog("[Erestor] actions received: \(actions.map { $0.type }), actionHandler nil? \(self?.actionHandler == nil)")
                 self?.actionHandler?.execute(actions)
             }
-
-        // Also observe messages for non-streaming additions (user messages, errors)
-        chatService.$messages
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] messages in
-                self?.renderMessages(messages)
-            }
-            .store(in: &messageCancellables)
     }
 
     // MARK: - Push message observation (show notification when chat is closed)
@@ -398,69 +282,16 @@ class BubbleWindowController: ObservableObject {
         }
     }
 
-    private var messageCancellables = Set<AnyCancellable>()
-
-    private func renderMessages(_ messages: [ChatMessage]) {
-        guard let webView = chatWebVC?.webView, let coord = chatWebVC?.coordinator else { return }
-
-        if messages.isEmpty && coord.renderedCount > 0 {
-            webView.evaluateJavaScript("clearMessages()")
-            coord.renderedCount = 0
-            coord.streamFinishedMessageCount = 0
-            return
-        }
-
-        let alreadySent = coord.renderedCount
-        if messages.count > alreadySent {
-            for i in alreadySent..<messages.count {
-                let msg = messages[i]
-                // Skip if this message was rendered by streaming
-                if msg.role == .assistant && coord.streamFinishedMessageCount == i + 1 {
-                    coord.renderedCount = i + 1
-                    continue
-                }
-                let role = msg.role == .user ? "user" : "assistant"
-                let escaped = ChatWebViewVC.escapeForJS(msg.text)
-                webView.evaluateJavaScript("addMessage(\"\(role)\", \"\(escaped)\", \"\(msg.timestamp)\")")
-            }
-            coord.renderedCount = messages.count
-        }
-
-        // Loading state
-        let isLoading = chatService?.isLoading ?? false
-        if isLoading != coord.lastLoadingState {
-            if !(chatService?.isStreaming ?? false) {
-                webView.evaluateJavaScript("setLoading(\(isLoading))")
-            }
-            coord.lastLoadingState = isLoading
-        }
-    }
+    // Message rendering is handled by SwiftUI ContextPanelView via @ObservedObject chatService
 
     // MARK: - Context polling (feeds WebView)
 
     private func startContextPolling() {
-        contextPollTask = Task.detached { [weak self] in
+        contextPollTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 5_000_000_000) // 5s
-
-                guard let url = ErestorConfig.url(for: "/api/context") else { continue }
-                var request = URLRequest(url: url)
-                request.timeoutInterval = 5
-                ErestorConfig.authorize(&request)
-
-                if let (data, _) = try? await URLSession.shared.data(for: request),
-                   let jsonStr = String(data: data, encoding: .utf8) {
-                    await MainActor.run {
-                        guard let self, let webView = self.chatWebVC?.webView else { return }
-                        let escaped = jsonStr
-                            .replacingOccurrences(of: "\\", with: "\\\\")
-                            .replacingOccurrences(of: "'", with: "\\'")
-                            .replacingOccurrences(of: "\n", with: "\\n")
-                            .replacingOccurrences(of: "\r", with: "")
-                        webView.evaluateJavaScript("updateContext('\(escaped)')")
-                        self.updateHeaderTime()
-                    }
-                }
+                guard let self else { break }
+                await self.chatService?.loadContext()
             }
         }
     }
@@ -533,12 +364,10 @@ class BubbleWindowController: ObservableObject {
 
         isChatVisible = true
 
-        // Focus textarea — nonactivatingPanel can receive keys without stealing app focus
+        // Focus panel — nonactivatingPanel can receive keys without stealing app focus
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-            guard let self, let chatPanel = self.chatPanel, let webView = self.chatWebVC?.webView else { return }
+            guard let self, let chatPanel = self.chatPanel else { return }
             chatPanel.makeKey()
-            chatPanel.makeFirstResponder(webView)
-            webView.evaluateJavaScript("document.getElementById('msg-input').focus()")
         }
     }
 
@@ -704,8 +533,7 @@ class KeyablePanel: NSPanel {
         // Cmd+K → clear conversation
         if event.modifierFlags.contains(.command) && event.charactersIgnoringModifiers == "k" {
             Task { @MainActor in
-                try? await BubbleWindowController.shared.chatService?.clearHistory()
-                try? await BubbleWindowController.shared.chatWebVC?.webView?.evaluateJavaScript("clearMessages()")
+                await BubbleWindowController.shared.chatService?.clearHistory()
             }
             return
         }
