@@ -397,14 +397,14 @@ class ActionHandler: NSObject, ObservableObject {
     // MARK: - Backend Helper (async — ensures sequential execution for ordered actions)
 
     private func callBackendEndpointAsync(_ path: String, body: [String: String], actionType: String? = nil) async {
-        let baseURL = "http://127.0.0.1:8766"
-        guard let url = URL(string: "\(baseURL)\(path)") else {
+        guard let url = ErestorConfig.url(for: "/api\(path)") else {
             logger.error("Invalid backend URL for path: \(path)")
             return
         }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        ErestorConfig.authorize(&request)
         request.httpBody = try? JSONEncoder().encode(body)
 
         do {

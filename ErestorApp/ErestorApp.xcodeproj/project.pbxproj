@@ -17,6 +17,7 @@
 		52C7AF71265210F649FC9098 /* ChatWebViewVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7CF7982BA4E26DEEFDFBFA2 /* ChatWebViewVC.swift */; };
 		7A58AC9E8A315C4B2B42C459 /* GlobalHotkey.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4D04077E89AF5E8483CEF1 /* GlobalHotkey.swift */; };
 		C19F2AB711DC56A08FA7A786 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CAF21A8BB3986DAF6CC78D41 /* Assets.xcassets */; };
+		C8300DEDFED8150CCF240297 /* ErestorConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88BEC03536C597689B4BD72D /* ErestorConfig.swift */; };
 		E66F0524475D36B073F783D3 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CB6436DDC8DE2DDC409F26 /* Color+Hex.swift */; };
 		E7522F220C723B0BD7E6EEDF /* ErestorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A90B1FEF0C3A626ED06FDA /* ErestorApp.swift */; };
 /* End PBXBuildFile section */
@@ -29,6 +30,7 @@
 		32CB6436DDC8DE2DDC409F26 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
 		6D8C040A7322C909CF58DB9C /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
 		7CBE77C1C1F6C9A9AE9A81DE /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		88BEC03536C597689B4BD72D /* ErestorConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErestorConfig.swift; sourceTree = "<group>"; };
 		8C1CDFC6B22B296A17AA23D6 /* ErestorApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ErestorApp.entitlements; sourceTree = "<group>"; };
 		9BAF6A3BCDB2B8FE40305DA4 /* ChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatService.swift; sourceTree = "<group>"; };
 		A7CF7982BA4E26DEEFDFBFA2 /* ChatWebViewVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatWebViewVC.swift; sourceTree = "<group>"; };
@@ -131,6 +133,7 @@
 				F29616889FD16929E28F62E9 /* ActionHandler.swift */,
 				C68E83AC4D75DB1530301B82 /* BubbleWindowController.swift */,
 				9BAF6A3BCDB2B8FE40305DA4 /* ChatService.swift */,
+				88BEC03536C597689B4BD72D /* ErestorConfig.swift */,
 				EA4D04077E89AF5E8483CEF1 /* GlobalHotkey.swift */,
 			);
 			path = Services;
@@ -212,6 +215,7 @@
 				52C7AF71265210F649FC9098 /* ChatWebViewVC.swift in Sources */,
 				E66F0524475D36B073F783D3 /* Color+Hex.swift in Sources */,
 				E7522F220C723B0BD7E6EEDF /* ErestorApp.swift in Sources */,
+				C8300DEDFED8150CCF240297 /* ErestorConfig.swift in Sources */,
 				7A58AC9E8A315C4B2B42C459 /* GlobalHotkey.swift in Sources */,
 				03B1590DAD5A52517B5BE236 /* Message.swift in Sources */,
 			);

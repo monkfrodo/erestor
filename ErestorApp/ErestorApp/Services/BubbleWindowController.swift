@@ -379,32 +379,49 @@ class BubbleWindowController: ObservableObject {
     }
 
     private func startTimerPolling() {
-        // ZERO MainActor hops — all state cached locally in the detached task.
-        // Only touches MainActor when display values actually change.
+        // Timer display from API context — polls every 5s, interpolates locally between polls
         timerPollTask = Task.detached { [weak self] in
-            let home = FileManager.default.homeDirectoryForCurrentUser
-            // Local cache — no MainActor reads needed
             var prevTimerText = ""
             var prevDescText = ""
             var prevVisible: Bool = false
+            var cachedTimerStartTS: Double? = nil  // unix timestamp when timer started
+            var cachedTimerDesc: String = ""
             var cachedEventTitle: String? = nil
-            var contextRefreshCounter = 0
+            var tickCounter = 0
 
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s tick
+                tickCounter += 1
 
+                // Refresh context from API every 5s
+                if tickCounter % 5 == 0 {
+                    if let url = ErestorConfig.url(for: "/api/context") {
+                        var request = URLRequest(url: url)
+                        request.timeoutInterval = 5
+                        ErestorConfig.authorize(&request)
+                        if let (data, _) = try? await URLSession.shared.data(for: request),
+                           let ctx = try? JSONDecoder().decode(ContextSummary.self, from: data) {
+                            if let timer = ctx.timer {
+                                // Calculate start timestamp from elapsed minutes
+                                let elapsedSeconds = Double(timer.minutes) * 60
+                                cachedTimerStartTS = Date().timeIntervalSince1970 - elapsedSeconds
+                                cachedTimerDesc = timer.desc
+                            } else {
+                                cachedTimerStartTS = nil
+                                cachedTimerDesc = ""
+                            }
+                            cachedEventTitle = ctx.currentEvent?.title
+                        }
+                    }
+                }
+
+                // Calculate display from cached state
                 var timerText = ""
                 var descText = ""
                 var found = false
 
-                for (_, file) in [("work", ".work_timer"), ("content", ".content_timer"), ("tech", ".ocio_timer")] {
-                    let path = home.appendingPathComponent(file)
-                    guard FileManager.default.fileExists(atPath: path.path) else { continue }
-                    guard let tsStr = try? String(contentsOf: path, encoding: .utf8)
-                        .trimmingCharacters(in: .whitespacesAndNewlines),
-                          let ts = Double(tsStr) else { continue }
-
-                    let elapsed = Int(Date().timeIntervalSince1970 - ts)
+                if let startTS = cachedTimerStartTS {
+                    let elapsed = Int(Date().timeIntervalSince1970 - startTS)
                     let hours = elapsed / 3600
                     let mins = (elapsed % 3600) / 60
                     let secs = elapsed % 60
@@ -412,15 +429,12 @@ class BubbleWindowController: ObservableObject {
                         ? String(format: "%d:%02d:%02d", hours, mins, secs)
                         : String(format: "%02d:%02d", mins, secs)
 
-                    let descPath = home.appendingPathComponent(file.replacingOccurrences(of: "_timer", with: "_desc"))
-                    let rawDesc = (try? String(contentsOf: descPath, encoding: .utf8)
-                        .trimmingCharacters(in: .whitespacesAndNewlines)) ?? ""
+                    let rawDesc = cachedTimerDesc
                     let words = rawDesc.split(separator: " ").map(String.init)
                         .filter { $0.count > 2 && $0 != "&" }
                     let shortWord = words.min(by: { $0.count < $1.count }) ?? words.first ?? rawDesc
                     descText = (shortWord.count > 8 ? String(shortWord.prefix(6)) + "…" : shortWord).lowercased()
                     found = true
-                    break
                 }
 
                 if !found, let et = cachedEventTitle, !et.isEmpty {
@@ -448,17 +462,6 @@ class BubbleWindowController: ObservableObject {
                             }
                         } else {
                             timerPanel.orderOut(nil)
-                        }
-                    }
-                }
-
-                // Refresh cached event title every 30 cycles (30s)
-                contextRefreshCounter += 1
-                if contextRefreshCounter % 30 == 0 {
-                    if let url = URL(string: "http://127.0.0.1:8766/context") {
-                        if let (data, _) = try? await URLSession.shared.data(from: url),
-                           let ctx = try? JSONDecoder().decode(ContextSummary.self, from: data) {
-                            cachedEventTitle = ctx.currentEvent?.title
                         }
                     }
                 }
