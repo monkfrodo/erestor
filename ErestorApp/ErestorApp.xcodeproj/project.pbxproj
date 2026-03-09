@@ -7,38 +7,79 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01411411BA237854C13FE70B /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 6D8C040A7322C909CF58DB9C /* icon.png */; };
+		014325E2BB5D420B0EE15BEE /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1EF325B321C9D285D69B3C /* DesignSystem.swift */; };
 		0355328392BA6A461B2B796B /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 6D8C040A7322C909CF58DB9C /* icon.png */; };
 		03B1590DAD5A52517B5BE236 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CBE77C1C1F6C9A9AE9A81DE /* Message.swift */; };
 		0714E196DFC2CA2CEC8FC239 /* ActionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29616889FD16929E28F62E9 /* ActionHandler.swift */; };
+		08BAB63055C4EE9A5395C309 /* EventCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44FE0FD2462C1E7A9519C8E3 /* EventCardView.swift */; };
 		0A1961BB49D4892DD6A2355B /* BubbleWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C68E83AC4D75DB1530301B82 /* BubbleWindowController.swift */; };
+		0AE55DB2632217F57E14E346 /* ContextPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B12C08A771682A848B7AB049 /* ContextPanelView.swift */; };
+		10F587C286E5FC17C750370F /* TimerChipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA726871DCF9235C77FC9C2 /* TimerChipView.swift */; };
+		14407A7815BEA5D018E59AC0 /* ChatInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95D84A05DD7C977E0DD5106 /* ChatInputView.swift */; };
+		14A8652CDCA80FF082FEB68E /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CB6436DDC8DE2DDC409F26 /* Color+Hex.swift */; };
 		1C7F302F6D0C9C9F4472379C /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF6A3BCDB2B8FE40305DA4 /* ChatService.swift */; };
+		22C8CAADAAAAA9B1D620B924 /* PollCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DED315BF82B5065424B760C7 /* PollCardView.swift */; };
+		296A1A6763FA759F01C6ADA4 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A6A396AE8B71CF2FE102BD /* TaskListView.swift */; };
 		33C6219B4048DE979B04D87A /* chat.html in Resources */ = {isa = PBXBuildFile; fileRef = 27FCF827EAD5CCE3CE63CD1A /* chat.html */; };
+		3A2790185905E51E6E8C9F0F /* ContextPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B12C08A771682A848B7AB049 /* ContextPanelView.swift */; };
+		3DB79635B286D9AEBCEF8038 /* ChatHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8FB6927863F16D6663132FB /* ChatHistoryView.swift */; };
 		492BAB83C55D9443874A5A3F /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 13C54B088922E68C9346B5D6 /* Carbon.framework */; };
+		4DAFCF4C5AFDCBFE28A797A6 /* ChatHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8FB6927863F16D6663132FB /* ChatHistoryView.swift */; };
+		503EEEA88E4A21BFAEB9BBF5 /* ChatInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95D84A05DD7C977E0DD5106 /* ChatInputView.swift */; };
 		52C7AF71265210F649FC9098 /* ChatWebViewVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7CF7982BA4E26DEEFDFBFA2 /* ChatWebViewVC.swift */; };
+		63635E5C94E10247F8F94310 /* GateAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C89AE433FD59FBBCA5CAF0C /* GateAlertView.swift */; };
+		66CBB98D6A222AC1C0408327 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF6A3BCDB2B8FE40305DA4 /* ChatService.swift */; };
+		74E039BB676FCAE9E0E60E52 /* GateAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C89AE433FD59FBBCA5CAF0C /* GateAlertView.swift */; };
 		7A58AC9E8A315C4B2B42C459 /* GlobalHotkey.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4D04077E89AF5E8483CEF1 /* GlobalHotkey.swift */; };
+		7EC1919EC5FA9800AAA3A3C6 /* PollCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DED315BF82B5065424B760C7 /* PollCardView.swift */; };
+		880A0E0EFC6D05632A4783EC /* TimerChipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA726871DCF9235C77FC9C2 /* TimerChipView.swift */; };
+		A709D99DAA0C4B37AF788C9A /* chat.html in Resources */ = {isa = PBXBuildFile; fileRef = 27FCF827EAD5CCE3CE63CD1A /* chat.html */; };
+		A72AC1221332A99D45C1BD80 /* NextEventView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B06D8F33A486DBEC78AA79D5 /* NextEventView.swift */; };
+		B662C83994D35C343ED50C43 /* NextEventView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B06D8F33A486DBEC78AA79D5 /* NextEventView.swift */; };
 		C19F2AB711DC56A08FA7A786 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CAF21A8BB3986DAF6CC78D41 /* Assets.xcassets */; };
+		C1AA7865096C33F1411930B4 /* ErestorApp_iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB69E20FF896205BF7CF7F01 /* ErestorApp_iOS.swift */; };
 		C8300DEDFED8150CCF240297 /* ErestorConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88BEC03536C597689B4BD72D /* ErestorConfig.swift */; };
+		CFF9E6EF6C73E0C3C9D1C28E /* ErestorConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88BEC03536C597689B4BD72D /* ErestorConfig.swift */; };
+		DCED3B87C1896FAB6168A37C /* EventCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44FE0FD2462C1E7A9519C8E3 /* EventCardView.swift */; };
 		E66F0524475D36B073F783D3 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CB6436DDC8DE2DDC409F26 /* Color+Hex.swift */; };
 		E7522F220C723B0BD7E6EEDF /* ErestorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A90B1FEF0C3A626ED06FDA /* ErestorApp.swift */; };
+		E9D786C715E9A2FE3F7AC585 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1EF325B321C9D285D69B3C /* DesignSystem.swift */; };
+		EEB0897591F58238AE99DD63 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CBE77C1C1F6C9A9AE9A81DE /* Message.swift */; };
+		F9ECC64AF3BC50098110E60A /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A6A396AE8B71CF2FE102BD /* TaskListView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		05A6A396AE8B71CF2FE102BD /* TaskListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListView.swift; sourceTree = "<group>"; };
 		13C54B088922E68C9346B5D6 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		17A90B1FEF0C3A626ED06FDA /* ErestorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErestorApp.swift; sourceTree = "<group>"; };
 		27FCF827EAD5CCE3CE63CD1A /* chat.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = chat.html; sourceTree = "<group>"; };
 		2C1BE0AC8A367A0AB5CB80D3 /* ErestorApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ErestorApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C89AE433FD59FBBCA5CAF0C /* GateAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GateAlertView.swift; sourceTree = "<group>"; };
 		32CB6436DDC8DE2DDC409F26 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
+		44FE0FD2462C1E7A9519C8E3 /* EventCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventCardView.swift; sourceTree = "<group>"; };
+		4C1EF325B321C9D285D69B3C /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		6D8C040A7322C909CF58DB9C /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
 		7CBE77C1C1F6C9A9AE9A81DE /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		7EA726871DCF9235C77FC9C2 /* TimerChipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerChipView.swift; sourceTree = "<group>"; };
 		88BEC03536C597689B4BD72D /* ErestorConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErestorConfig.swift; sourceTree = "<group>"; };
 		8C1CDFC6B22B296A17AA23D6 /* ErestorApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ErestorApp.entitlements; sourceTree = "<group>"; };
+		8D0E256906733D375FFE3650 /* ErestorApp-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "ErestorApp-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BAF6A3BCDB2B8FE40305DA4 /* ChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatService.swift; sourceTree = "<group>"; };
 		A7CF7982BA4E26DEEFDFBFA2 /* ChatWebViewVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatWebViewVC.swift; sourceTree = "<group>"; };
+		A8FB6927863F16D6663132FB /* ChatHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHistoryView.swift; sourceTree = "<group>"; };
+		B06D8F33A486DBEC78AA79D5 /* NextEventView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextEventView.swift; sourceTree = "<group>"; };
+		B12C08A771682A848B7AB049 /* ContextPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextPanelView.swift; sourceTree = "<group>"; };
 		C68E83AC4D75DB1530301B82 /* BubbleWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleWindowController.swift; sourceTree = "<group>"; };
 		CAF21A8BB3986DAF6CC78D41 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CB69E20FF896205BF7CF7F01 /* ErestorApp_iOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErestorApp_iOS.swift; sourceTree = "<group>"; };
+		DED315BF82B5065424B760C7 /* PollCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollCardView.swift; sourceTree = "<group>"; };
+		E95D84A05DD7C977E0DD5106 /* ChatInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatInputView.swift; sourceTree = "<group>"; };
 		EA4D04077E89AF5E8483CEF1 /* GlobalHotkey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotkey.swift; sourceTree = "<group>"; };
+		EDEF0815FBF0B9308D3B4BDC /* ErestorApp_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ErestorApp_iOS.entitlements; sourceTree = "<group>"; };
 		F29616889FD16929E28F62E9 /* ActionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionHandler.swift; sourceTree = "<group>"; };
 		F62EEAB88F334FFD13CA069A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F63B286ACEFB790667F776C5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +105,7 @@
 		45C64AFC05477468FFF01288 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				8D0E256906733D375FFE3650 /* ErestorApp-iOS.app */,
 				2C1BE0AC8A367A0AB5CB80D3 /* ErestorApp.app */,
 			);
 			name = Products;
@@ -77,10 +119,30 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
+		7902DBA904DF7D6E93F2BAD4 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				EDEF0815FBF0B9308D3B4BDC /* ErestorApp_iOS.entitlements */,
+				CB69E20FF896205BF7CF7F01 /* ErestorApp_iOS.swift */,
+				F63B286ACEFB790667F776C5 /* Info.plist */,
+			);
+			path = iOS;
+			sourceTree = "<group>";
+		};
 		BAA926090CF0F48AB9D246DC /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A8FB6927863F16D6663132FB /* ChatHistoryView.swift */,
+				E95D84A05DD7C977E0DD5106 /* ChatInputView.swift */,
 				A7CF7982BA4E26DEEFDFBFA2 /* ChatWebViewVC.swift */,
+				B12C08A771682A848B7AB049 /* ContextPanelView.swift */,
+				4C1EF325B321C9D285D69B3C /* DesignSystem.swift */,
+				44FE0FD2462C1E7A9519C8E3 /* EventCardView.swift */,
+				2C89AE433FD59FBBCA5CAF0C /* GateAlertView.swift */,
+				B06D8F33A486DBEC78AA79D5 /* NextEventView.swift */,
+				DED315BF82B5065424B760C7 /* PollCardView.swift */,
+				05A6A396AE8B71CF2FE102BD /* TaskListView.swift */,
+				7EA726871DCF9235C77FC9C2 /* TimerChipView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -93,6 +155,7 @@
 				17A90B1FEF0C3A626ED06FDA /* ErestorApp.swift */,
 				F62EEAB88F334FFD13CA069A /* Info.plist */,
 				4E944DFE09779714A3190AE6 /* Extensions */,
+				7902DBA904DF7D6E93F2BAD4 /* iOS */,
 				2A70F23310FCE9ED3AEC11EF /* Models */,
 				DD97DB1D88F3245CEA4C52CA /* Resources */,
 				F7216CC98F0993D498BC3E8E /* Services */,
@@ -161,6 +224,24 @@
 			productReference = 2C1BE0AC8A367A0AB5CB80D3 /* ErestorApp.app */;
 			productType = "com.apple.product-type.application";
 		};
+		6D8B20D4B84DCF4751BE195B /* ErestorApp-iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 828240710F69CBB25FD76A09 /* Build configuration list for PBXNativeTarget "ErestorApp-iOS" */;
+			buildPhases = (
+				CD6A5F5CE1DF16E0DCAB46AC /* Sources */,
+				FEA1BC8A6205BF6100D80CEE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "ErestorApp-iOS";
+			packageProductDependencies = (
+			);
+			productName = "ErestorApp-iOS";
+			productReference = 8D0E256906733D375FFE3650 /* ErestorApp-iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -187,6 +268,7 @@
 			projectRoot = "";
 			targets = (
 				35AADA336D08A56EE3C2ABB9 /* ErestorApp */,
+				6D8B20D4B84DCF4751BE195B /* ErestorApp-iOS */,
 			);
 		};
 /* End PBXProject section */
@@ -202,22 +284,63 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FEA1BC8A6205BF6100D80CEE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A709D99DAA0C4B37AF788C9A /* chat.html in Resources */,
+				01411411BA237854C13FE70B /* icon.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		CD6A5F5CE1DF16E0DCAB46AC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3DB79635B286D9AEBCEF8038 /* ChatHistoryView.swift in Sources */,
+				503EEEA88E4A21BFAEB9BBF5 /* ChatInputView.swift in Sources */,
+				66CBB98D6A222AC1C0408327 /* ChatService.swift in Sources */,
+				14A8652CDCA80FF082FEB68E /* Color+Hex.swift in Sources */,
+				3A2790185905E51E6E8C9F0F /* ContextPanelView.swift in Sources */,
+				014325E2BB5D420B0EE15BEE /* DesignSystem.swift in Sources */,
+				C1AA7865096C33F1411930B4 /* ErestorApp_iOS.swift in Sources */,
+				CFF9E6EF6C73E0C3C9D1C28E /* ErestorConfig.swift in Sources */,
+				08BAB63055C4EE9A5395C309 /* EventCardView.swift in Sources */,
+				74E039BB676FCAE9E0E60E52 /* GateAlertView.swift in Sources */,
+				EEB0897591F58238AE99DD63 /* Message.swift in Sources */,
+				B662C83994D35C343ED50C43 /* NextEventView.swift in Sources */,
+				7EC1919EC5FA9800AAA3A3C6 /* PollCardView.swift in Sources */,
+				296A1A6763FA759F01C6ADA4 /* TaskListView.swift in Sources */,
+				10F587C286E5FC17C750370F /* TimerChipView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D8403FA177434673D9AA72D5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				0714E196DFC2CA2CEC8FC239 /* ActionHandler.swift in Sources */,
 				0A1961BB49D4892DD6A2355B /* BubbleWindowController.swift in Sources */,
+				4DAFCF4C5AFDCBFE28A797A6 /* ChatHistoryView.swift in Sources */,
+				14407A7815BEA5D018E59AC0 /* ChatInputView.swift in Sources */,
 				1C7F302F6D0C9C9F4472379C /* ChatService.swift in Sources */,
 				52C7AF71265210F649FC9098 /* ChatWebViewVC.swift in Sources */,
 				E66F0524475D36B073F783D3 /* Color+Hex.swift in Sources */,
+				0AE55DB2632217F57E14E346 /* ContextPanelView.swift in Sources */,
+				E9D786C715E9A2FE3F7AC585 /* DesignSystem.swift in Sources */,
 				E7522F220C723B0BD7E6EEDF /* ErestorApp.swift in Sources */,
 				C8300DEDFED8150CCF240297 /* ErestorConfig.swift in Sources */,
+				DCED3B87C1896FAB6168A37C /* EventCardView.swift in Sources */,
+				63635E5C94E10247F8F94310 /* GateAlertView.swift in Sources */,
 				7A58AC9E8A315C4B2B42C459 /* GlobalHotkey.swift in Sources */,
 				03B1590DAD5A52517B5BE236 /* Message.swift in Sources */,
+				A72AC1221332A99D45C1BD80 /* NextEventView.swift in Sources */,
+				22C8CAADAAAAA9B1D620B924 /* PollCardView.swift in Sources */,
+				F9ECC64AF3BC50098110E60A /* TaskListView.swift in Sources */,
+				880A0E0EFC6D05632A4783EC /* TimerChipView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,6 +365,48 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.integros.erestor;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		5BD6D16BC6107B0EE18515B4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ErestorApp/iOS/ErestorApp_iOS.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = ErestorApp/iOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.integros.erestor.ios;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		9B401B86A946A8F6BE44A60B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ErestorApp/iOS/ErestorApp_iOS.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = ErestorApp/iOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.integros.erestor.ios;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -296,12 +461,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -374,11 +539,11 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -393,6 +558,15 @@
 			buildConfigurations = (
 				B5EB66EA7AE7F25E5C83C5A3 /* Debug */,
 				F97D068D658899DBFC51F804 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		828240710F69CBB25FD76A09 /* Build configuration list for PBXNativeTarget "ErestorApp-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9B401B86A946A8F6BE44A60B /* Debug */,
+				5BD6D16BC6107B0EE18515B4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
