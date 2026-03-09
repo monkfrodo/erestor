@@ -23,6 +23,9 @@ class BubbleWindowController: ObservableObject {
     private var headerDot: NSView?
     private var headerTimeLabel: NSTextField?
 
+    // Notification badge on bubble
+    private var notificationDot: NSView?
+
     var chatWebVC: ChatWebViewController?
     private var streamCancellable: AnyCancellable?
     private var actionsCancellable: AnyCancellable?
@@ -64,8 +67,12 @@ class BubbleWindowController: ObservableObject {
     // MARK: - Bubble Panel
 
     private func createBubblePanel() {
+        let dotSizeCalc: CGFloat = 14
+        let panelExtra = dotSizeCalc / 2
+        let panelSize = bubbleSize + panelExtra
+
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: bubbleSize, height: bubbleSize),
+            contentRect: NSRect(x: 0, y: 0, width: panelSize, height: panelSize),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -78,6 +85,13 @@ class BubbleWindowController: ObservableObject {
         panel.isMovableByWindowBackground = false
         panel.hidesOnDeactivate = false
         panel.animationBehavior = .none
+
+        // Wrapper view (unclipped) holds the bubble circle + notification dot
+        let dotSize: CGFloat = 14
+        let padding: CGFloat = dotSize / 2
+        let wrapper = NSView(frame: NSRect(x: 0, y: 0, width: bubbleSize + padding, height: bubbleSize + padding))
+        wrapper.wantsLayer = true
+        wrapper.layer?.backgroundColor = .clear
 
         // Pure AppKit bubble — no SwiftUI/NSHostingView to avoid focus stealing
         let container = NSView(frame: NSRect(x: 0, y: 0, width: bubbleSize, height: bubbleSize))
@@ -105,18 +119,31 @@ class BubbleWindowController: ObservableObject {
         borderLayer.lineWidth = 1.5
         container.layer?.addSublayer(borderLayer)
 
-        panel.contentView = container
+        wrapper.addSubview(container)
+
+        // Notification dot (top-right of bubble, outside clipping mask)
+        let notifDot = NSView(frame: NSRect(x: bubbleSize - dotSize / 2, y: bubbleSize - dotSize / 2, width: dotSize, height: dotSize))
+        notifDot.wantsLayer = true
+        notifDot.layer?.cornerRadius = dotSize / 2
+        notifDot.layer?.backgroundColor = NSColor(red: 0.76, green: 0.35, blue: 0.29, alpha: 1).cgColor // #c25a4a
+        notifDot.layer?.borderColor = NSColor(red: 0.16, green: 0.14, blue: 0.13, alpha: 1).cgColor
+        notifDot.layer?.borderWidth = 2
+        notifDot.isHidden = true
+        wrapper.addSubview(notifDot)
+        self.notificationDot = notifDot
+
+        panel.contentView = wrapper
 
         if let screen = NSScreen.main {
             let screenFrame = screen.visibleFrame
-            let x = screenFrame.maxX - bubbleSize - 20
+            let x = screenFrame.maxX - panelSize - 20
             let y = screenFrame.minY + 120
             panel.setFrameOrigin(NSPoint(x: x, y: y))
         }
 
-        let dragView = BubbleDragView(frame: NSRect(x: 0, y: 0, width: bubbleSize, height: bubbleSize))
+        let dragView = BubbleDragView(frame: NSRect(x: 0, y: 0, width: panelSize, height: panelSize))
         dragView.controller = self
-        panel.contentView?.addSubview(dragView)
+        wrapper.addSubview(dragView)
 
         self.bubblePanel = panel
         panel.orderFront(nil)
@@ -247,6 +274,29 @@ class BubbleWindowController: ObservableObject {
         hideChat()
     }
 
+    // MARK: - Notification dot
+
+    private func showNotificationDot() {
+        guard let dot = notificationDot, dot.isHidden else { return }
+        dot.alphaValue = 0
+        dot.isHidden = false
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.2
+            dot.animator().alphaValue = 1
+        }
+    }
+
+    private func hideNotificationDot() {
+        guard let dot = notificationDot, !dot.isHidden else { return }
+        NSAnimationContext.runAnimationGroup({ ctx in
+            ctx.duration = 0.15
+            dot.animator().alphaValue = 0
+        }, completionHandler: { [weak self] in
+            self?.notificationDot?.isHidden = true
+            self?.notificationDot?.alphaValue = 1
+        })
+    }
+
     // MARK: - Stream observation (push tokens to WebView)
 
     private func observeStreaming() {
@@ -271,6 +321,10 @@ class BubbleWindowController: ObservableObject {
                     webView.evaluateJavaScript("finalizeStream(\"\(escaped)\", \"\(delta.timestamp)\")")
                     coord.streamFinishedMessageCount = chatService.messages.count
                     coord.renderedCount = chatService.messages.count
+                    // Show notification dot if chat is closed
+                    if !self.isChatVisible {
+                        self.showNotificationDot()
+                    }
                 }
             }
 
@@ -300,24 +354,41 @@ class BubbleWindowController: ObservableObject {
             queue: .main
         ) { [weak self] notification in
             guard let self else { return }
-            // Only send system notification if chat panel is NOT visible
             if !self.isChatVisible {
                 let text = notification.userInfo?["text"] as? String ?? "Nova mensagem do Erestor"
-                self.sendPushNotification(text: text)
+                let eventType = notification.userInfo?["eventType"] as? String ?? "message"
+                self.sendPushNotification(text: text, eventType: eventType)
+                self.showNotificationDot()
             }
         }
     }
 
-    private func sendPushNotification(text: String) {
+    private func sendPushNotification(text: String, eventType: String = "message") {
         let content = UNMutableNotificationContent()
-        content.title = "Erestor"
         content.body = text
         content.sound = .default
+
+        switch eventType {
+        case "poll_energy":
+            content.title = "Erestor — Enquete"
+            content.categoryIdentifier = "POLL_ENERGY"
+        case "poll_quality":
+            content.title = "Erestor — Enquete"
+            content.categoryIdentifier = "POLL_QUALITY"
+        case "gate_inform":
+            content.title = "Erestor — Alerta"
+            content.categoryIdentifier = "GATE_INFORM"
+        case "reminder":
+            content.title = "Erestor — Lembrete"
+            content.categoryIdentifier = "REMINDER"
+        default:
+            content.title = "Erestor"
+        }
 
         let request = UNNotificationRequest(
             identifier: UUID().uuidString,
             content: content,
-            trigger: nil // Deliver immediately
+            trigger: nil
         )
 
         UNUserNotificationCenter.current().add(request) { error in
@@ -427,7 +498,8 @@ class BubbleWindowController: ObservableObject {
             let bubbleFrame = panel.frame
             if !screenFrame.intersects(bubbleFrame) {
                 NSLog("[Erestor] Bubble watchdog: panel was off-screen, repositioning")
-                let x = screenFrame.maxX - bubbleSize - 20
+                let dotPadding: CGFloat = 7 // dotSize / 2
+                let x = screenFrame.maxX - (bubbleSize + dotPadding) - 20
                 let y = screenFrame.minY + 120
                 panel.setFrameOrigin(NSPoint(x: x, y: y))
             }
@@ -447,6 +519,7 @@ class BubbleWindowController: ObservableObject {
     func showChat() {
         guard let chatPanel, let bubblePanel else { return }
 
+        hideNotificationDot()
         positionChatPanel(relativeTo: bubblePanel.frame)
 
         chatPanel.alphaValue = 0

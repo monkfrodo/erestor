@@ -43,10 +43,12 @@ struct ContextSummary: Codable {
 }
 
 struct PushEvent: Codable {
-    let type: String        // "message", "action", "context_update"
+    let type: String        // message, action, context_update, poll_energy, poll_quality, gate_inform, reminder
     let text: String?
     let actions: [ChatAction]?
     let context: ContextSummary?
+    let options: [String]?  // poll choices (poll_energy: 5 options, poll_quality: 4 options)
+    let severity: String?   // gate_inform severity: "amber" | "red"
 }
 
 struct ChatAction: Codable, Identifiable {

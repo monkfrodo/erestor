@@ -326,11 +326,48 @@ class ChatService: ObservableObject {
             streamDelta = StreamDelta(kind: .finished, text: botMsg.text, timestamp: botMsg.timestamp)
             logger.info("Push message received: \(text.prefix(80))")
 
-            // Post notification so BubbleWindowController can show system notification
             NotificationCenter.default.post(
                 name: .erestorPushMessageReceived,
                 object: nil,
-                userInfo: ["text": text]
+                userInfo: ["text": text, "eventType": "message"]
+            )
+
+        case "poll_energy", "poll_quality":
+            let text = event.text ?? (event.type == "poll_energy" ? "Como tá tua energia?" : "Como foi esse bloco?")
+            logger.info("Push \(event.type) received: \(text.prefix(80))")
+
+            NotificationCenter.default.post(
+                name: .erestorPushMessageReceived,
+                object: nil,
+                userInfo: [
+                    "text": text,
+                    "eventType": event.type,
+                    "options": event.options ?? [],
+                ]
+            )
+
+        case "gate_inform":
+            let text = event.text ?? "Alerta do gate"
+            logger.info("Push gate_inform received (\(event.severity ?? "amber")): \(text.prefix(80))")
+
+            NotificationCenter.default.post(
+                name: .erestorPushMessageReceived,
+                object: nil,
+                userInfo: [
+                    "text": text,
+                    "eventType": "gate_inform",
+                    "severity": event.severity ?? "amber",
+                ]
+            )
+
+        case "reminder":
+            let text = event.text ?? "Lembrete"
+            logger.info("Push reminder received: \(text.prefix(80))")
+
+            NotificationCenter.default.post(
+                name: .erestorPushMessageReceived,
+                object: nil,
+                userInfo: ["text": text, "eventType": "reminder"]
             )
 
         case "action":

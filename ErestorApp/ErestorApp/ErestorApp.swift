@@ -49,6 +49,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         Task { await chatService.checkStatus() }
 
         UNUserNotificationCenter.current().delegate = self
+        registerNotificationCategories()
 
         // Periodic cleanup — kill any rogue windows that macOS creates
         windowCleanupTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
@@ -78,11 +79,96 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
+        let actionID = response.actionIdentifier
+        let category = response.notification.request.content.categoryIdentifier
+
+        // Handle notification action buttons
+        if actionID != UNNotificationDefaultActionIdentifier && actionID != UNNotificationDismissActionIdentifier {
+            sendPushResponse(category: category, action: actionID)
+            completionHandler()
+            return
+        }
+
+        // Default tap — open chat
         DispatchQueue.main.async {
             self.closeStaleWindows()
             BubbleWindowController.shared.showChat()
         }
         completionHandler()
+    }
+
+    private func registerNotificationCategories() {
+        // Energy poll — 4 buttons (5th option "5-pico" opens panel via default tap)
+        let energyActions = ["1-morto", "2-baixa", "3-ok", "4-boa"].map { label in
+            UNNotificationAction(identifier: label, title: label, options: [])
+        }
+        let energyCategory = UNNotificationCategory(
+            identifier: "POLL_ENERGY",
+            actions: energyActions,
+            intentIdentifiers: [],
+            options: []
+        )
+
+        // Quality poll — 4 buttons
+        let qualityActions = ["perdi", "meh", "ok", "flow"].map { label in
+            UNNotificationAction(identifier: label, title: label, options: [])
+        }
+        let qualityCategory = UNNotificationCategory(
+            identifier: "POLL_QUALITY",
+            actions: qualityActions,
+            intentIdentifiers: [],
+            options: []
+        )
+
+        // Gate inform — Ver + Dispensar
+        let gateActions = [
+            UNNotificationAction(identifier: "ver", title: "Ver", options: [.foreground]),
+            UNNotificationAction(identifier: "dispensar", title: "Dispensar", options: []),
+        ]
+        let gateCategory = UNNotificationCategory(
+            identifier: "GATE_INFORM",
+            actions: gateActions,
+            intentIdentifiers: [],
+            options: []
+        )
+
+        // Reminder — Ver + Dispensar
+        let reminderCategory = UNNotificationCategory(
+            identifier: "REMINDER",
+            actions: gateActions,  // same buttons
+            intentIdentifiers: [],
+            options: []
+        )
+
+        UNUserNotificationCenter.current().setNotificationCategories([
+            energyCategory, qualityCategory, gateCategory, reminderCategory,
+        ])
+    }
+
+    private func sendPushResponse(category: String, action: String) {
+        // "ver" action opens chat
+        if action == "ver" {
+            DispatchQueue.main.async {
+                self.closeStaleWindows()
+                BubbleWindowController.shared.showChat()
+            }
+            return
+        }
+        // "dispensar" — just dismiss, no backend call
+        if action == "dispensar" { return }
+
+        // Poll responses — send to backend
+        guard let url = ErestorConfig.url(for: "/api/push/respond") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 10
+        ErestorConfig.authorize(&request)
+
+        let body: [String: String] = ["category": category, "action": action]
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        URLSession.shared.dataTask(with: request).resume()
     }
 
     private func closeStaleWindows() {
