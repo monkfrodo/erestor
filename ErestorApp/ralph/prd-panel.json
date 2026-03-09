@@ -32,7 +32,7 @@
         "Typecheck passes"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Reference: .tc and .nxt CSS classes in prototype. TimerChipView sits inside EventCardView section (visually nested under the event). NextEventView has a separator line above it."
     },
     {
