@@ -24,7 +24,9 @@ struct TimerChipView: View {
                     .foregroundColor(stopHovered ? DS.red : DS.muted)
             }
             .buttonStyle(.plain)
+            #if os(macOS)
             .onHover { stopHovered = $0 }
+            #endif
             .padding(.leading, 8)
         }
         .padding(.vertical, 6)

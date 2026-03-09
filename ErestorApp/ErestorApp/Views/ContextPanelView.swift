@@ -3,7 +3,7 @@ import Combine
 
 struct ContextPanelView: View {
     @ObservedObject var chatService: ChatService
-    let onClose: () -> Void
+    var onClose: (() -> Void)? = nil
 
     @State private var activePoll: ActivePoll?
     @State private var activeGate: ActiveGate?
@@ -93,6 +93,14 @@ struct ContextPanelView: View {
             // Chat history
             ChatHistoryView(messages: chatService.messages)
 
+            #if os(iOS)
+            // Day timeline (iOS only)
+            if let events = chatService.context?.todayEvents, !events.isEmpty {
+                DayTimelineView(events: events)
+                separator
+            }
+            #endif
+
             // Chat input
             ChatInputView { text in
                 Task {
@@ -100,14 +108,18 @@ struct ContextPanelView: View {
                 }
             }
         }
+        #if os(macOS)
         .frame(width: 288)
+        #endif
         .background(DS.surface)
+        #if os(macOS)
         .cornerRadius(14)
         .overlay(
             RoundedRectangle(cornerRadius: 14)
                 .stroke(DS.border, lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.5), radius: 24, x: 0, y: 16)
+        #endif
         .onReceive(pushObserver) { notification in
             handlePush(notification)
         }
@@ -129,12 +141,14 @@ struct ContextPanelView: View {
 
             Spacer()
 
-            Button(action: onClose) {
-                Text("\u{00d7}")
-                    .font(.system(size: 13))
-                    .foregroundColor(DS.muted)
+            if let onClose {
+                Button(action: onClose) {
+                    Text("\u{00d7}")
+                        .font(.system(size: 13))
+                        .foregroundColor(DS.muted)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
         .padding(.horizontal, 14)
         .padding(.top, 12)

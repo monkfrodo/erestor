@@ -25,7 +25,9 @@ struct ChatHistoryView: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 6)
                 }
+                #if os(macOS)
                 .frame(maxHeight: 180)
+                #endif
                 .onChange(of: messages.count) { _ in
                     if let last = messages.last {
                         withAnimation {

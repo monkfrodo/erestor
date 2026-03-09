@@ -21,6 +21,7 @@ struct ContextSummary: Codable {
     let nextEvent: NextEvent?
     let currentEvent: NextEvent?
     let briefing: String?
+    let todayEvents: [NextEvent]?
 
     struct TimerInfo: Codable {
         let type: String
@@ -39,6 +40,7 @@ struct ContextSummary: Codable {
         case p1Tasks = "p1_tasks"
         case nextEvent = "next_event"
         case currentEvent = "current_event"
+        case todayEvents = "today_events"
     }
 }
 
