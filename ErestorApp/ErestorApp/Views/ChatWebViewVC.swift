@@ -168,14 +168,36 @@ struct ChatWebViewVC: NSViewControllerRepresentable {
             didReceive message: WKScriptMessage
         ) {
             guard let body = message.body as? [String: Any],
-                  let type = body["type"] as? String,
-                  type == "send",
-                  let text = body["text"] as? String
+                  let type = body["type"] as? String
             else { return }
 
-            Task { @MainActor in
-                // Use streaming by default
-                await chatService.sendMessageStreaming(text)
+            switch type {
+            case "send":
+                guard let text = body["text"] as? String else { return }
+                Task { @MainActor in
+                    await chatService.sendMessageStreaming(text)
+                }
+
+            case "timer_stop":
+                Task { @MainActor in
+                    guard let url = ErestorConfig.url(for: "/api/timer/stop") else { return }
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "POST"
+                    request.timeoutInterval = 10
+                    ErestorConfig.authorize(&request)
+                    _ = try? await URLSession.shared.data(for: request)
+                }
+
+            case "poll_response":
+                let pollType = body["pollType"] as? String ?? ""
+                let value = body["value"] as? String ?? ""
+                Task { @MainActor in
+                    await chatService.sendMessageStreaming("energia: \(value)")
+                }
+                logger.info("Poll response: \(pollType) = \(value)")
+
+            default:
+                break
             }
         }
     }

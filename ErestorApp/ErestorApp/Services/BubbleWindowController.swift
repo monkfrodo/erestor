@@ -15,19 +15,21 @@ class BubbleWindowController: ObservableObject {
 
     private(set) var bubblePanel: NSPanel?
     private var chatPanel: KeyablePanel?
-    private var timerPanel: NSPanel?
-    private var timerLabel: NSTextField?
-    private var timerDescLabel: NSTextField?
-    private var timerPollTask: Task<Void, Never>?
+    private var contextPollTask: Task<Void, Never>?
     var chatService: ChatService?
     private var actionHandler: ActionHandler?
+
+    // Header elements
+    private var headerDot: NSView?
+    private var headerTimeLabel: NSTextField?
 
     var chatWebVC: ChatWebViewController?
     private var streamCancellable: AnyCancellable?
     private var actionsCancellable: AnyCancellable?
+    private var serverOnlineCancellable: AnyCancellable?
     private let bubbleSize: CGFloat = 64
-    private let chatWidth: CGFloat = 340
-    private let chatHeight: CGFloat = 480
+    private let chatWidth: CGFloat = 320
+    private let chatHeight: CGFloat = 540
     private let margin: CGFloat = 12
 
     private var isDragging = false
@@ -35,7 +37,7 @@ class BubbleWindowController: ObservableObject {
     private var bubbleWatchdogTask: Task<Void, Never>?
 
     deinit {
-        timerPollTask?.cancel()
+        contextPollTask?.cancel()
         bubbleWatchdogTask?.cancel()
     }
 
@@ -52,11 +54,11 @@ class BubbleWindowController: ObservableObject {
         self.actionHandler = actionHandler
         createBubblePanel()
         createChatPanel()
-        createTimerPanel()
         observeStreaming()
-        startTimerPolling()
+        startContextPolling()
         startBubbleWatchdog()
         observePushMessages()
+        observeServerOnline()
     }
 
     // MARK: - Bubble Panel
@@ -133,12 +135,12 @@ class BubbleWindowController: ObservableObject {
         )
         panel.level = .floating
         panel.isOpaque = false
-        panel.backgroundColor = NSColor(red: 0.165, green: 0.141, blue: 0.133, alpha: 0.98) // #2a2422
+        panel.backgroundColor = NSColor(red: 0.118, green: 0.110, blue: 0.102, alpha: 0.98) // #1e1c1a
         panel.hasShadow = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.hidesOnDeactivate = false
         panel.animationBehavior = .utilityWindow
-        panel.minSize = NSSize(width: 280, height: 320)
+        panel.minSize = NSSize(width: 260, height: 400)
         panel.maxSize = NSSize(width: 600, height: 900)
         panel.isFloatingPanel = true
 
@@ -183,29 +185,62 @@ class BubbleWindowController: ObservableObject {
     private func createHeaderView(width: CGFloat, height: CGFloat) -> NSView {
         let header = DraggableHeaderView(frame: NSRect(x: 0, y: 0, width: width, height: height))
         header.wantsLayer = true
-        header.layer?.backgroundColor = NSColor(red: 0.208, green: 0.180, blue: 0.173, alpha: 1).cgColor // #352e2c
+        header.layer?.backgroundColor = NSColor(red: 0.118, green: 0.110, blue: 0.102, alpha: 1).cgColor // #1e1c1a
 
-        // Title label
-        let title = NSTextField(labelWithString: "Erestor")
-        title.font = NSFont.monospacedSystemFont(ofSize: 11, weight: .medium)
-        title.textColor = NSColor(red: 0.831, green: 0.769, blue: 0.722, alpha: 1) // #d4c4b8
-        title.frame = NSRect(x: 12, y: 6, width: 100, height: 20)
-        title.autoresizingMask = [.maxXMargin]
-        header.addSubview(title)
+        // Status dot
+        let dot = NSView(frame: NSRect(x: 12, y: 10, width: 5, height: 5))
+        dot.wantsLayer = true
+        dot.layer?.cornerRadius = 2.5
+        dot.layer?.backgroundColor = NSColor(red: 0.29, green: 0.62, blue: 0.41, alpha: 1).cgColor // green
+        dot.autoresizingMask = [.maxXMargin]
+        header.addSubview(dot)
+        self.headerDot = dot
+
+        // Time label
+        let timeLabel = NSTextField(labelWithString: "")
+        timeLabel.font = NSFont.monospacedSystemFont(ofSize: 10, weight: .regular)
+        timeLabel.textColor = NSColor(red: 0.42, green: 0.36, blue: 0.31, alpha: 1) // --subtle
+        timeLabel.frame = NSRect(x: 22, y: 4, width: 80, height: 16)
+        timeLabel.autoresizingMask = [.maxXMargin]
+        header.addSubview(timeLabel)
+        self.headerTimeLabel = timeLabel
+        updateHeaderTime()
 
         // Close button
-        let closeBtn = NSButton(frame: NSRect(x: width - 30, y: 6, width: 20, height: 20))
+        let closeBtn = NSButton(frame: NSRect(x: width - 26, y: 5, width: 16, height: 16))
         closeBtn.bezelStyle = .inline
         closeBtn.isBordered = false
-        closeBtn.title = ""
-        closeBtn.image = NSImage(systemSymbolName: "xmark", accessibilityDescription: "Close")
-        closeBtn.contentTintColor = NSColor(red: 0.478, green: 0.431, blue: 0.400, alpha: 1) // #7a6e66
+        closeBtn.title = "\u{00d7}"
+        closeBtn.font = NSFont.systemFont(ofSize: 13)
+        closeBtn.contentTintColor = NSColor(red: 0.24, green: 0.22, blue: 0.20, alpha: 1) // --muted
         closeBtn.target = self
         closeBtn.action = #selector(closeChatAction)
         closeBtn.autoresizingMask = [.minXMargin]
         header.addSubview(closeBtn)
 
         return header
+    }
+
+    private func updateHeaderTime() {
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "pt_BR")
+        fmt.timeZone = TimeZone(identifier: "America/Sao_Paulo")
+        fmt.dateFormat = "EEE HH:mm"
+        let text = fmt.string(from: Date()).lowercased()
+            .replacingOccurrences(of: ".", with: "")
+        headerTimeLabel?.stringValue = text
+    }
+
+    private func observeServerOnline() {
+        guard let chatService else { return }
+        serverOnlineCancellable = chatService.$serverOnline
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] online in
+                let color: NSColor = online
+                    ? NSColor(red: 0.29, green: 0.62, blue: 0.41, alpha: 1)
+                    : NSColor(red: 0.24, green: 0.22, blue: 0.20, alpha: 1)
+                self?.headerDot?.layer?.backgroundColor = color.cgColor
+            }
     }
 
     @objc private func closeChatAction() {
@@ -330,139 +365,29 @@ class BubbleWindowController: ObservableObject {
         }
     }
 
-    // MARK: - Timer indicator (below bubble)
+    // MARK: - Context polling (feeds WebView)
 
-    private func createTimerPanel() {
-        let w: CGFloat = 140
-        let h: CGFloat = 72  // time + desc
-        let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: w, height: h),
-            styleMask: [.borderless, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
-        panel.level = .floating
-        panel.isOpaque = false
-        panel.backgroundColor = .clear
-        panel.hasShadow = false
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        panel.hidesOnDeactivate = false
-
-        let container = NSView(frame: NSRect(x: 0, y: 0, width: w, height: h))
-
-        // Time label (MM:SS or H:MM:SS)
-        let timeLabel = NSTextField(labelWithString: "")
-        timeLabel.font = NSFont.monospacedSystemFont(ofSize: 11, weight: .bold)
-        timeLabel.textColor = NSColor(red: 0.29, green: 0.62, blue: 0.41, alpha: 1)
-        timeLabel.backgroundColor = .clear
-        timeLabel.isBezeled = false
-        timeLabel.isEditable = false
-        timeLabel.alignment = .center
-        timeLabel.frame = NSRect(x: 0, y: 20, width: w, height: 16)
-        container.addSubview(timeLabel)
-
-        // Desc label (one word)
-        let descLabel = NSTextField(labelWithString: "")
-        descLabel.font = NSFont.monospacedSystemFont(ofSize: 9, weight: .regular)
-        descLabel.textColor = NSColor(red: 0.6, green: 0.55, blue: 0.50, alpha: 1)
-        descLabel.backgroundColor = .clear
-        descLabel.isBezeled = false
-        descLabel.isEditable = false
-        descLabel.alignment = .center
-        descLabel.frame = NSRect(x: 0, y: 4, width: w, height: 16)
-        container.addSubview(descLabel)
-
-        panel.contentView = container
-        self.timerLabel = timeLabel
-        self.timerDescLabel = descLabel
-        self.timerPanel = panel
-    }
-
-    private func startTimerPolling() {
-        // Timer display from API context — polls every 5s, interpolates locally between polls
-        timerPollTask = Task.detached { [weak self] in
-            var prevTimerText = ""
-            var prevDescText = ""
-            var prevVisible: Bool = false
-            var cachedTimerStartTS: Double? = nil  // unix timestamp when timer started
-            var cachedTimerDesc: String = ""
-            var cachedEventTitle: String? = nil
-            var tickCounter = 0
-
+    private func startContextPolling() {
+        contextPollTask = Task.detached { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s tick
-                tickCounter += 1
+                try? await Task.sleep(nanoseconds: 5_000_000_000) // 5s
 
-                // Refresh context from API every 5s
-                if tickCounter % 5 == 0 {
-                    if let url = ErestorConfig.url(for: "/api/context") {
-                        var request = URLRequest(url: url)
-                        request.timeoutInterval = 5
-                        ErestorConfig.authorize(&request)
-                        if let (data, _) = try? await URLSession.shared.data(for: request),
-                           let ctx = try? JSONDecoder().decode(ContextSummary.self, from: data) {
-                            if let timer = ctx.timer {
-                                // Calculate start timestamp from elapsed minutes
-                                let elapsedSeconds = Double(timer.minutes) * 60
-                                cachedTimerStartTS = Date().timeIntervalSince1970 - elapsedSeconds
-                                cachedTimerDesc = timer.desc
-                            } else {
-                                cachedTimerStartTS = nil
-                                cachedTimerDesc = ""
-                            }
-                            cachedEventTitle = ctx.currentEvent?.title
-                        }
-                    }
-                }
+                guard let url = ErestorConfig.url(for: "/api/context") else { continue }
+                var request = URLRequest(url: url)
+                request.timeoutInterval = 5
+                ErestorConfig.authorize(&request)
 
-                // Calculate display from cached state
-                var timerText = ""
-                var descText = ""
-                var found = false
-
-                if let startTS = cachedTimerStartTS {
-                    let elapsed = Int(Date().timeIntervalSince1970 - startTS)
-                    let hours = elapsed / 3600
-                    let mins = (elapsed % 3600) / 60
-                    let secs = elapsed % 60
-                    timerText = hours > 0
-                        ? String(format: "%d:%02d:%02d", hours, mins, secs)
-                        : String(format: "%02d:%02d", mins, secs)
-
-                    let rawDesc = cachedTimerDesc
-                    let words = rawDesc.split(separator: " ").map(String.init)
-                        .filter { $0.count > 2 && $0 != "&" }
-                    let shortWord = words.min(by: { $0.count < $1.count }) ?? words.first ?? rawDesc
-                    descText = (shortWord.count > 8 ? String(shortWord.prefix(6)) + "…" : shortWord).lowercased()
-                    found = true
-                }
-
-                if !found, let et = cachedEventTitle, !et.isEmpty {
-                    timerText = ""
-                    descText = (et.count > 18 ? String(et.prefix(16)) + "…" : et).lowercased()
-                    found = true
-                }
-
-                let needsUpdate = timerText != prevTimerText || descText != prevDescText || found != prevVisible
-                if needsUpdate {
-                    prevTimerText = timerText
-                    prevDescText = descText
-                    prevVisible = found
-                    let tt = timerText, dt = descText, show = found
+                if let (data, _) = try? await URLSession.shared.data(for: request),
+                   let jsonStr = String(data: data, encoding: .utf8) {
                     await MainActor.run {
-                        guard let self, let timerPanel = self.timerPanel,
-                              let timerLabel = self.timerLabel, let bubblePanel = self.bubblePanel else { return }
-                        if show {
-                            timerLabel.stringValue = tt
-                            self.timerDescLabel?.stringValue = dt
-                            let f = bubblePanel.frame
-                            timerPanel.setFrameOrigin(NSPoint(x: f.midX - 70, y: f.minY - 44))
-                            if !timerPanel.isVisible {
-                                timerPanel.order(.above, relativeTo: bubblePanel.windowNumber)
-                            }
-                        } else {
-                            timerPanel.orderOut(nil)
-                        }
+                        guard let self, let webView = self.chatWebVC?.webView else { return }
+                        let escaped = jsonStr
+                            .replacingOccurrences(of: "\\", with: "\\\\")
+                            .replacingOccurrences(of: "'", with: "\\'")
+                            .replacingOccurrences(of: "\n", with: "\\n")
+                            .replacingOccurrences(of: "\r", with: "")
+                        webView.evaluateJavaScript("updateContext('\(escaped)')")
+                        self.updateHeaderTime()
                     }
                 }
             }
@@ -597,13 +522,6 @@ class BubbleWindowController: ObservableObject {
         if isChatVisible {
             positionChatPanel(relativeTo: bubblePanel.frame)
         }
-        repositionTimerPanel()
-    }
-
-    private func repositionTimerPanel() {
-        guard let timerPanel, timerPanel.isVisible, let bubblePanel else { return }
-        let bubbleFrame = bubblePanel.frame
-        timerPanel.setFrameOrigin(NSPoint(x: bubbleFrame.midX - 70, y: bubbleFrame.minY - 44))
     }
 
     func bubbleDragEnded() {
@@ -625,7 +543,6 @@ class BubbleWindowController: ObservableObject {
         let bubbleY = chatFrame.minY
 
         bubblePanel.setFrameOrigin(NSPoint(x: bubbleX, y: bubbleY))
-        repositionTimerPanel()
     }
 }
 
