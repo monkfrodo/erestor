@@ -74,3 +74,111 @@ body {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* Chat markdown styles */
+.chat-markdown p {
+  margin-bottom: 0.5em;
+}
+
+.chat-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-markdown code {
+  background: var(--ds-s2);
+  color: var(--ds-bright);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+.chat-markdown pre {
+  background: var(--ds-s2);
+  border: 1px solid var(--ds-border);
+  border-radius: 8px;
+  padding: 0.75em 1em;
+  margin: 0.5em 0;
+  overflow-x: auto;
+}
+
+.chat-markdown pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.chat-markdown ul,
+.chat-markdown ol {
+  padding-left: 1.2em;
+  margin-bottom: 0.5em;
+}
+
+.chat-markdown li {
+  margin-bottom: 0.15em;
+}
+
+.chat-markdown strong {
+  color: var(--ds-bright);
+}
+
+.chat-markdown a {
+  color: var(--ds-blue);
+  text-decoration: underline;
+}
+
+.chat-markdown blockquote {
+  border-left: 3px solid var(--ds-border);
+  padding-left: 0.75em;
+  color: var(--ds-subtle);
+  margin: 0.5em 0;
+}
+
+/* highlight.js Vesper Dark overrides */
+.hljs {
+  background: var(--ds-s2) !important;
+  color: var(--ds-text) !important;
+}
+
+.hljs-keyword,
+.hljs-selector-tag {
+  color: var(--ds-amber) !important;
+}
+
+.hljs-string,
+.hljs-addition {
+  color: var(--ds-green) !important;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--ds-subtle) !important;
+  font-style: italic;
+}
+
+.hljs-number,
+.hljs-literal {
+  color: var(--ds-red) !important;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-built_in {
+  color: var(--ds-blue) !important;
+}
+
+/* Modal animations */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
