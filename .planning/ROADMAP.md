@@ -80,10 +80,12 @@ Plans:
   1. A PWA-installable web app provides the same panel functionality (event, timer, tasks) as native clients
   2. Chat with streaming responses works in the browser
   3. Web push notifications deliver alerts when the browser is open
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md -- Next.js PWA scaffold, design system, stores, SSE service, and Panel tab
+- [ ] 04-02-PLAN.md -- Chat tab with streaming markdown + Agenda and Insights tabs
+- [ ] 04-03-PLAN.md -- Poll/gate modals + web push notifications (frontend + backend)
 
 ## Progress
 
@@ -95,4 +97,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. API Foundation | 2/2 | Complete | 2026-03-10 |
 | 2. macOS Experience | 5/6 | In Progress|  |
 | 3. iOS + Data Migration | 4/5 | In Progress|  |
-| 4. Web PWA | 0/1 | Not started | - |
+| 4. Web PWA | 0/3 | Not started | - |
