@@ -211,7 +211,7 @@ class AppDelegate_iOS: NSObject, UIApplicationDelegate, UNUserNotificationCenter
     // MARK: - Register device token with backend
 
     private func registerDeviceToken(_ token: String) {
-        guard let url = ErestorConfig.url(for: "/api/device/register") else { return }
+        guard let url = ErestorConfig.url(for: ErestorConfig.deviceRegisterPath) else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

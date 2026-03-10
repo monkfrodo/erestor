@@ -158,7 +158,7 @@ struct iOS_PainelView: View {
 
     private func stopTimer() {
         Task {
-            guard let url = ErestorConfig.url(for: "/api/timer/stop") else { return }
+            guard let url = ErestorConfig.url(for: ErestorConfig.timerStopPath) else { return }
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.timeoutInterval = 10

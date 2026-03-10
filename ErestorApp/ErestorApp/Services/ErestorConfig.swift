@@ -12,6 +12,12 @@ enum ErestorConfig {
     static let chatStreamPath = "/v1/chat/stream"
     static let pollsPath = "/v1/polls"
     static let synthesisPath = "/v1/synthesis"
+    static let statusPath = "/v1/status"
+    static let contextPath = "/v1/context"
+    static let chatPath = "/v1/chat"
+    static let historyPath = "/v1/history"
+    static let timerStopPath = "/v1/timer/stop"
+    static let deviceRegisterPath = "/v1/device/register"
 
     /// Apply auth header to a URLRequest
     static func authorize(_ request: inout URLRequest) {

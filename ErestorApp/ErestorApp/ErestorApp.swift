@@ -219,8 +219,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         // "dispensar" — just dismiss, no backend call
         if action == "dispensar" { return }
 
-        // Legacy push responses (non-poll)
-        guard let url = ErestorConfig.url(for: "/api/push/respond") else { return }
+        // Legacy push respond -- gate/poll actions handled above, this is a fallback no-op
+        guard let url = ErestorConfig.url(for: "/v1/push/respond") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

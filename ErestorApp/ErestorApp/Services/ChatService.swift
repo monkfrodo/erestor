@@ -467,7 +467,7 @@ class ChatService: ObservableObject {
 
         defer { isLoading = false }
 
-        guard let url = ErestorConfig.url(for: "/api/chat") else { return }
+        guard let url = ErestorConfig.url(for: ErestorConfig.chatPath) else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -509,7 +509,7 @@ class ChatService: ObservableObject {
     // MARK: - Other endpoints
 
     func loadContext() async {
-        guard let url = ErestorConfig.url(for: "/api/context") else { return }
+        guard let url = ErestorConfig.url(for: ErestorConfig.contextPath) else { return }
         var request = URLRequest(url: url)
         request.timeoutInterval = 10
         ErestorConfig.authorize(&request)
@@ -534,7 +534,7 @@ class ChatService: ObservableObject {
 
     /// Network call runs completely OFF MainActor
     private nonisolated static func pollStatus() async -> Bool {
-        guard let url = ErestorConfig.url(for: "/api/status") else { return false }
+        guard let url = ErestorConfig.url(for: ErestorConfig.statusPath) else { return false }
         var request = URLRequest(url: url)
         request.timeoutInterval = 5
         ErestorConfig.authorize(&request)
@@ -553,7 +553,7 @@ class ChatService: ObservableObject {
     // MARK: - Load history from backend
 
     func loadHistory() async {
-        guard let url = ErestorConfig.url(for: "/api/history?source=desktop&limit=10") else { return }
+        guard let url = ErestorConfig.url(for: "\(ErestorConfig.historyPath)?source=desktop&limit=10") else { return }
         var request = URLRequest(url: url)
         request.timeoutInterval = 5
         ErestorConfig.authorize(&request)
