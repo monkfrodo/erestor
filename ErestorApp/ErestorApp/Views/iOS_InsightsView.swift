@@ -4,6 +4,11 @@ import Charts
 
 // MARK: - Data Models
 
+struct InsightsApiResponse: Codable {
+    let ok: Bool
+    let data: InsightsChartData
+}
+
 struct InsightsChartData: Codable {
     let energyTrend: [EnergyPoint]
     let qualityDistribution: QualityDist
@@ -19,7 +24,11 @@ struct InsightsChartData: Codable {
 struct EnergyPoint: Codable, Identifiable {
     var id: String { date }
     let date: String
-    let level: Int
+    let level: String  // Backend sends "4-boa", "3-ok", etc.
+
+    var numericLevel: Int {
+        Int(String(level.prefix(while: { $0.isNumber }))) ?? 3
+    }
 }
 
 struct QualityDist: Codable {
@@ -125,7 +134,7 @@ struct iOS_InsightsView: View {
         HStack(spacing: 10) {
             summaryCard(
                 label: "Energia",
-                value: data.energyTrend.last.map { "\($0.level)" } ?? "--",
+                value: data.energyTrend.last.map { "\($0.numericLevel)" } ?? "--",
                 icon: "bolt.fill",
                 color: DS.green
             )
@@ -192,14 +201,14 @@ struct iOS_InsightsView: View {
             Chart(data) { point in
                 LineMark(
                     x: .value("Data", shortDate(point.date)),
-                    y: .value("Energia", point.level)
+                    y: .value("Energia", point.numericLevel)
                 )
                 .foregroundStyle(DS.green)
                 .interpolationMethod(.catmullRom)
 
                 PointMark(
                     x: .value("Data", shortDate(point.date)),
-                    y: .value("Energia", point.level)
+                    y: .value("Energia", point.numericLevel)
                 )
                 .foregroundStyle(DS.green)
                 .symbolSize(20)
@@ -338,7 +347,8 @@ struct iOS_InsightsView: View {
             }
 
             let decoder = JSONDecoder()
-            chartData = try decoder.decode(InsightsChartData.self, from: data)
+            let apiResponse = try decoder.decode(InsightsApiResponse.self, from: data)
+            chartData = apiResponse.data
             isLoading = false
         } catch {
             isLoading = false
