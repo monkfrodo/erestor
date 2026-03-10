@@ -28,11 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. A chat endpoint streams Claude responses via SSE in real-time
   3. Calendar events can be read (day agenda) and created (natural language parsed by Claude) through API calls
   4. Core logic functions are callable without any Telegram dependency
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md -- FastAPI app setup with auth, schemas, status and context endpoints
+- [ ] 01-02-PLAN.md -- Chat streaming SSE and calendar read/write endpoints
 
 ### Phase 2: macOS Experience
 **Goal**: Kevin has a fully functional macOS contextual panel that replaces Telegram as his primary Erestor interface
