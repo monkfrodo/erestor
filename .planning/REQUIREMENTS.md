@@ -46,9 +46,9 @@
 ### Mobile (iOS)
 
 - [x] **IOS-01**: Contextual panel adapted for iPhone (event, timer, tasks, chat)
-- [ ] **IOS-02**: Full day agenda view with all scheduled blocks
-- [ ] **IOS-03**: Inline energy and block quality polls
-- [ ] **IOS-04**: Push notifications with inline actions (APNs)
+- [x] **IOS-02**: Full day agenda view with all scheduled blocks
+- [x] **IOS-03**: Inline energy and block quality polls
+- [x] **IOS-04**: Push notifications with inline actions (APNs)
 
 ### Web (PWA)
 
@@ -65,7 +65,7 @@
 ### Notifications
 
 - [x] **NOTF-01**: Native macOS notifications with inline actions (polls, quick responses)
-- [ ] **NOTF-02**: iOS push notifications via APNs with inline actions
+- [x] **NOTF-02**: iOS push notifications via APNs with inline actions
 - [ ] **NOTF-03**: Web push notifications via Web Push API
 
 ## v2 Requirements
@@ -129,10 +129,10 @@
 | SYNT-02 | Phase 2 | Complete |
 | NOTF-01 | Phase 2 | Complete |
 | IOS-01 | Phase 3 | Complete |
-| IOS-02 | Phase 3 | Pending |
-| IOS-03 | Phase 3 | Pending |
-| IOS-04 | Phase 3 | Pending |
-| NOTF-02 | Phase 3 | Pending |
+| IOS-02 | Phase 3 | Complete |
+| IOS-03 | Phase 3 | Complete |
+| IOS-04 | Phase 3 | Complete |
+| NOTF-02 | Phase 3 | Complete |
 | MIGR-01 | Phase 3 | Complete |
 | MIGR-02 | Phase 3 | Complete |
 | MIGR-03 | Phase 3 | Complete |

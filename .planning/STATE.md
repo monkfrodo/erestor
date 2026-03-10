@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-03-10T15:46:30Z"
-last_activity: 2026-03-10 -- Plan 03-02 executed (iOS TabView shell with Painel, Chat, Agenda, Insights)
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-03-10T15:58:41Z"
+last_activity: 2026-03-10 -- Plan 03-04 executed (iOS poll/gate sheets and APNs push integration)
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 8
-  completed_plans: 10
-  percent: 80
+  completed_plans: 14
+  percent: 90
 ---
 
 # Project State
@@ -26,18 +26,18 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 3 of 4 (iOS Data Migration)
-Plan: 2 of 2 in current phase
+Plan: 4 of 4 in current phase
 Status: Executing
-Last activity: 2026-03-10 -- Plan 03-02 executed (iOS TabView shell with Painel, Chat, Agenda, Insights)
+Last activity: 2026-03-10 -- Plan 03-04 executed (iOS poll/gate sheets and APNs push integration)
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 4.4 min
-- Total execution time: 0.7 hours
+- Total plans completed: 11
+- Average duration: 4.7 min
+- Total execution time: 0.9 hours
 
 **By Phase:**
 
@@ -45,10 +45,10 @@ Progress: [████████░░] 80%
 |-------|-------|-------|----------|
 | 01-api-foundation | 2/2 | 7 min | 3.5 min |
 | 02-macos-experience | 5/5 | 25 min | 5.0 min |
-| 03-ios-data-migration | 2/2 | 8 min | 4.0 min |
+| 03-ios-data-migration | 4/4 | 22 min | 5.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (5 min), 02-04 (5 min), 02-05 (4 min), 03-01 (4 min), 03-02 (4 min)
+- Last 5 plans: 03-01 (4 min), 03-02 (4 min), 03-03 (7 min), 03-04 (7 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -101,6 +101,14 @@ Recent decisions affecting current work:
 - [03-02]: Added stopEventStream() to ChatService for background SSE disconnection
 - [03-02]: Guarded BubbleWindowController reference with #if os(macOS) for iOS compatibility
 - [03-02]: Poll/gate sheets use presentationDetents for iOS-native bottom sheet behavior
+- [03-03]: DS.s2 used as card background instead of non-existent DS.header
+- [03-03]: GCalEvent Identifiable extension via computed id from summary+startTime
+- [03-03]: Events only shown for today (from context), other days show empty timeline
+- [03-03]: Charts use DS color system consistently (green for positive, red/amber for negative)
+- [03-04]: iOS notification actions grouped to 4-button limit: energy uses 1-2/3/4-5/remind ranges
+- [03-04]: APNs send_push called via asyncio.to_thread to avoid blocking event loop
+- [03-04]: Always send APNs to iOS regardless of macOS presence (no deduplication)
+- [03-04]: Separate iOS sheet view files instead of inline in TabRootView
 
 ### Pending Todos
 
@@ -113,6 +121,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T15:46:30Z
-Stopped at: Completed 03-02-PLAN.md
-Resume file: .planning/phases/03-ios-data-migration/03-02-SUMMARY.md
+Last session: 2026-03-10T15:58:41Z
+Stopped at: Completed 03-04-PLAN.md
+Resume file: .planning/phases/03-ios-data-migration/03-04-SUMMARY.md
