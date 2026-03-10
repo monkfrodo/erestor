@@ -44,12 +44,15 @@ Plans:
   3. Energy check-in polls appear at intelligent moments, block quality polls appear when calendar blocks end, and gate alerts fire when blocks are ending with tasks open
   4. Daily synthesis crosses polls, timers, blocks, and energy data into a richer analysis than the current Telegram version
   5. Native macOS notifications with inline actions deliver proactive alerts without requiring the panel to be open
-**Plans**: TBD
+**Plans**: 6 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md -- Backend SSE event stream + Anthropic SDK chat migration
+- [ ] 02-02-PLAN.md -- Backend poll storage, CRUD API, and synthesis endpoints
+- [ ] 02-03-PLAN.md -- Swift SSE client, MarkdownUI chat, and token streaming
+- [ ] 02-04-PLAN.md -- Panel layout restructure, collapsible tasks, poll/gate card updates
+- [ ] 02-05-PLAN.md -- macOS notifications for polls/gates + backend poll scheduling
+- [ ] 02-06-PLAN.md -- Full macOS experience verification checkpoint
 
 ### Phase 3: iOS + Data Migration
 **Goal**: Kevin has mobile access to Erestor on iPhone and all historical data from the Telegram era is preserved in the new system
@@ -87,6 +90,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. API Foundation | 1/2 | In progress | - |
-| 2. macOS Experience | 0/3 | Not started | - |
+| 2. macOS Experience | 0/6 | Not started | - |
 | 3. iOS + Data Migration | 0/2 | Not started | - |
 | 4. Web PWA | 0/1 | Not started | - |
