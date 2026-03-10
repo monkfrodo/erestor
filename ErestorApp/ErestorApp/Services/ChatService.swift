@@ -1,4 +1,5 @@
 import Foundation
+import UserNotifications
 import os
 #if os(macOS)
 import AppKit
@@ -144,8 +145,27 @@ class ChatService: ObservableObject {
                let poll = try? JSONDecoder().decode(PollSSEEvent.self, from: jsonData) {
                 activePolls.append(poll)
 
-                // Also post notification for ContextPanelView push handling
                 let eventType = event.type == .pollEnergy ? "poll_energy" : "poll_quality"
+                let categoryId = event.type == .pollEnergy ? "POLL_ENERGY" : "POLL_QUALITY"
+
+                // Post macOS notification if panel is NOT visible
+                let panelVisible = BubbleWindowController.shared.isChatVisible
+                if !panelVisible {
+                    postPollNotification(
+                        pollId: poll.pollId,
+                        question: poll.question,
+                        categoryIdentifier: categoryId
+                    )
+                }
+
+                // Schedule a 10-min reminder if poll still unanswered
+                scheduleReminderNotification(
+                    pollId: poll.pollId,
+                    question: poll.question,
+                    categoryIdentifier: categoryId
+                )
+
+                // Also post internal notification for ContextPanelView push handling
                 NotificationCenter.default.post(
                     name: .erestorPushMessageReceived,
                     object: nil,
@@ -162,6 +182,9 @@ class ChatService: ObservableObject {
                let gate = try? JSONDecoder().decode(GateSSEEvent.self, from: jsonData) {
                 activeGates.append(gate)
 
+                // Gate alerts ALWAYS post notification (urgent, even if panel visible)
+                postGateNotification(text: gate.text, severity: gate.severity)
+
                 NotificationCenter.default.post(
                     name: .erestorPushMessageReceived,
                     object: nil,
@@ -176,10 +199,25 @@ class ChatService: ObservableObject {
         case .pollExpired:
             if let pollId = event.rawData["poll_id"] as? String {
                 activePolls.removeAll { $0.pollId == pollId }
+                // Cancel any pending notifications for this poll
+                UNUserNotificationCenter.current().removePendingNotificationRequests(
+                    withIdentifiers: [pollId, "\(pollId)_reminder"]
+                )
             }
 
         case .pollReminder:
-            if let text = event.rawData["text"] as? String {
+            if let pollId = event.rawData["poll_id"] as? String,
+               let text = event.rawData["text"] as? String {
+                // Only show reminder if poll is still active (not responded)
+                if activePolls.contains(where: { $0.pollId == pollId }) {
+                    let categoryId = event.rawData["category"] as? String ?? "POLL_REMINDER"
+                    postPollNotification(
+                        pollId: "\(pollId)_reminder",
+                        question: "Lembrete: \(text)",
+                        categoryIdentifier: categoryId
+                    )
+                }
+            } else if let text = event.rawData["text"] as? String {
                 NotificationCenter.default.post(
                     name: .erestorPushMessageReceived,
                     object: nil,
@@ -205,6 +243,66 @@ class ChatService: ObservableObject {
                 if elapsed > 60 {
                     self.serverOnline = false
                 }
+            }
+        }
+    }
+
+    // MARK: - macOS Notification Helpers
+
+    /// Post a macOS notification for a poll (energy or quality)
+    private func postPollNotification(pollId: String, question: String, categoryIdentifier: String) {
+        let content = UNMutableNotificationContent()
+        content.title = "Erestor"
+        content.body = question
+        content.categoryIdentifier = categoryIdentifier
+        content.userInfo = ["poll_id": pollId]
+        content.sound = .default
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(identifier: pollId, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error {
+                logger.error("Poll notification failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Schedule a reminder notification 10 min after poll creation (if still unanswered)
+    private func scheduleReminderNotification(pollId: String, question: String, categoryIdentifier: String) {
+        let content = UNMutableNotificationContent()
+        content.title = "Erestor — Lembrete"
+        content.body = "Ainda pendente: \(question)"
+        content.categoryIdentifier = categoryIdentifier
+        content.userInfo = ["poll_id": pollId]
+        content.sound = .default
+
+        // Fire 10 minutes after poll creation
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 600, repeats: false)
+        let reminderId = "\(pollId)_reminder"
+        let request = UNNotificationRequest(identifier: reminderId, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error {
+                logger.error("Reminder notification scheduling failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Post a macOS notification for a gate alert (always, even if panel is visible)
+    private func postGateNotification(text: String, severity: String) {
+        let content = UNMutableNotificationContent()
+        content.title = "Erestor — Alerta"
+        content.body = text
+        content.categoryIdentifier = "GATE_INFORM"
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: "gate_\(UUID().uuidString)",
+            content: content,
+            trigger: nil
+        )
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error {
+                logger.error("Gate notification failed: \(error.localizedDescription)")
             }
         }
     }

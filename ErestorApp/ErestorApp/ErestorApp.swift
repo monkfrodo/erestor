@@ -92,10 +92,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     ) {
         let actionID = response.actionIdentifier
         let category = response.notification.request.content.categoryIdentifier
+        let userInfo = response.notification.request.content.userInfo
 
         // Handle notification action buttons
         if actionID != UNNotificationDefaultActionIdentifier && actionID != UNNotificationDismissActionIdentifier {
-            sendPushResponse(category: category, action: actionID)
+            // Poll responses — parse poll_id from userInfo and POST to backend
+            if let pollId = userInfo["poll_id"] as? String {
+                let value = parsePollResponseValue(category: category, action: actionID)
+                respondToPollBackend(pollId: pollId, value: value)
+            } else {
+                sendPushResponse(category: category, action: actionID)
+            }
             completionHandler()
             return
         }
@@ -109,9 +116,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     }
 
     private func registerNotificationCategories() {
-        // Energy poll — 4 buttons (5th option "5-pico" opens panel via default tap)
-        let energyActions = ["1-morto", "2-baixa", "3-ok", "4-boa"].map { label in
-            UNNotificationAction(identifier: label, title: label, options: [])
+        // Energy poll — 5 action buttons (1-5 scale)
+        let energyActions = (1...5).map { n in
+            UNNotificationAction(identifier: "ENERGY_\(n)", title: "\(n)", options: [])
         }
         let energyCategory = UNNotificationCategory(
             identifier: "POLL_ENERGY",
@@ -120,9 +127,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             options: []
         )
 
-        // Quality poll — 4 buttons
-        let qualityActions = ["perdi", "meh", "ok", "flow"].map { label in
-            UNNotificationAction(identifier: label, title: label, options: [])
+        // Quality poll — 4 action buttons
+        let qualityActions = ["perdi", "meh", "ok", "flow"].map { opt in
+            UNNotificationAction(identifier: "QUALITY_\(opt)", title: opt, options: [])
         }
         let qualityCategory = UNNotificationCategory(
             identifier: "POLL_QUALITY",
@@ -131,7 +138,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             options: []
         )
 
-        // Gate inform — Ver + Dispensar
+        // Gate inform — informational, Ver + Dispensar
         let gateActions = [
             UNNotificationAction(identifier: "ver", title: "Ver", options: [.foreground]),
             UNNotificationAction(identifier: "dispensar", title: "Dispensar", options: []),
@@ -143,10 +150,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             options: []
         )
 
-        // Reminder — Ver + Dispensar
+        // Poll reminder — same action buttons as original poll type (energy default)
+        let reminderEnergyActions = (1...5).map { n in
+            UNNotificationAction(identifier: "ENERGY_\(n)", title: "\(n)", options: [])
+        }
         let reminderCategory = UNNotificationCategory(
-            identifier: "REMINDER",
-            actions: gateActions,  // same buttons
+            identifier: "POLL_REMINDER",
+            actions: reminderEnergyActions,
             intentIdentifiers: [],
             options: []
         )
@@ -154,6 +164,47 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         UNUserNotificationCenter.current().setNotificationCategories([
             energyCategory, qualityCategory, gateCategory, reminderCategory,
         ])
+    }
+
+    /// Parse the selected value from a notification action identifier
+    private func parsePollResponseValue(category: String, action: String) -> String {
+        // "ENERGY_3" -> "3", "QUALITY_flow" -> "flow"
+        if action.hasPrefix("ENERGY_") {
+            return String(action.dropFirst("ENERGY_".count))
+        }
+        if action.hasPrefix("QUALITY_") {
+            return String(action.dropFirst("QUALITY_".count))
+        }
+        return action
+    }
+
+    /// POST poll response to /v1/polls/{poll_id}/respond
+    private func respondToPollBackend(pollId: String, value: String) {
+        guard let url = ErestorConfig.url(for: "\(ErestorConfig.pollsPath)/\(pollId)/respond") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 10
+        ErestorConfig.authorize(&request)
+
+        let body: [String: String] = ["value": value]
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        URLSession.shared.dataTask(with: request) { [weak self] _, response, error in
+            if let error {
+                NSLog("[Erestor] Poll respond failed: \(error.localizedDescription)")
+                return
+            }
+            // On success: remove poll from activePolls
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.chatService.activePolls.removeAll { $0.pollId == pollId }
+                // Cancel any pending reminder notification
+                UNUserNotificationCenter.current().removePendingNotificationRequests(
+                    withIdentifiers: [pollId, "\(pollId)_reminder"]
+                )
+            }
+        }.resume()
     }
 
     private func sendPushResponse(category: String, action: String) {
@@ -168,7 +219,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         // "dispensar" — just dismiss, no backend call
         if action == "dispensar" { return }
 
-        // Poll responses — send to backend
+        // Legacy push responses (non-poll)
         guard let url = ErestorConfig.url(for: "/api/push/respond") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
