@@ -11,6 +11,7 @@
 		014325E2BB5D420B0EE15BEE /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1EF325B321C9D285D69B3C /* DesignSystem.swift */; };
 		0355328392BA6A461B2B796B /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 6D8C040A7322C909CF58DB9C /* icon.png */; };
 		03B1590DAD5A52517B5BE236 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CBE77C1C1F6C9A9AE9A81DE /* Message.swift */; };
+		054426D87FBA3D1B6BAD604D /* ChatMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AEB3086F15B7B22CFC28994 /* ChatMessageView.swift */; };
 		0714E196DFC2CA2CEC8FC239 /* ActionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29616889FD16929E28F62E9 /* ActionHandler.swift */; };
 		08BAB63055C4EE9A5395C309 /* EventCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44FE0FD2462C1E7A9519C8E3 /* EventCardView.swift */; };
 		092834CB728A4DDBB894CE3E /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 15319FE3493F5053F1C98D85 /* MarkdownUI */; };
@@ -46,6 +47,7 @@
 		C1AA7865096C33F1411930B4 /* ErestorApp_iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB69E20FF896205BF7CF7F01 /* ErestorApp_iOS.swift */; };
 		C8300DEDFED8150CCF240297 /* ErestorConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88BEC03536C597689B4BD72D /* ErestorConfig.swift */; };
 		CFF9E6EF6C73E0C3C9D1C28E /* ErestorConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88BEC03536C597689B4BD72D /* ErestorConfig.swift */; };
+		D5B420EBB6503372DF7721E3 /* ChatMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AEB3086F15B7B22CFC28994 /* ChatMessageView.swift */; };
 		DCED3B87C1896FAB6168A37C /* EventCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44FE0FD2462C1E7A9519C8E3 /* EventCardView.swift */; };
 		E66F0524475D36B073F783D3 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CB6436DDC8DE2DDC409F26 /* Color+Hex.swift */; };
 		E7522F220C723B0BD7E6EEDF /* ErestorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A90B1FEF0C3A626ED06FDA /* ErestorApp.swift */; };
@@ -63,6 +65,7 @@
 		2C1BE0AC8A367A0AB5CB80D3 /* ErestorApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ErestorApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C89AE433FD59FBBCA5CAF0C /* GateAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GateAlertView.swift; sourceTree = "<group>"; };
 		32CB6436DDC8DE2DDC409F26 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
+		3AEB3086F15B7B22CFC28994 /* ChatMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageView.swift; sourceTree = "<group>"; };
 		44FE0FD2462C1E7A9519C8E3 /* EventCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventCardView.swift; sourceTree = "<group>"; };
 		4C1EF325B321C9D285D69B3C /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		6D8C040A7322C909CF58DB9C /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
@@ -145,6 +148,7 @@
 			children = (
 				A8FB6927863F16D6663132FB /* ChatHistoryView.swift */,
 				E95D84A05DD7C977E0DD5106 /* ChatInputView.swift */,
+				3AEB3086F15B7B22CFC28994 /* ChatMessageView.swift */,
 				A7CF7982BA4E26DEEFDFBFA2 /* ChatWebViewVC.swift */,
 				B12C08A771682A848B7AB049 /* ContextPanelView.swift */,
 				D13735668283F08864CE8F31 /* DayTimelineView.swift */,
@@ -320,6 +324,7 @@
 			files = (
 				3DB79635B286D9AEBCEF8038 /* ChatHistoryView.swift in Sources */,
 				503EEEA88E4A21BFAEB9BBF5 /* ChatInputView.swift in Sources */,
+				D5B420EBB6503372DF7721E3 /* ChatMessageView.swift in Sources */,
 				66CBB98D6A222AC1C0408327 /* ChatService.swift in Sources */,
 				14A8652CDCA80FF082FEB68E /* Color+Hex.swift in Sources */,
 				3A2790185905E51E6E8C9F0F /* ContextPanelView.swift in Sources */,
@@ -346,6 +351,7 @@
 				0A1961BB49D4892DD6A2355B /* BubbleWindowController.swift in Sources */,
 				4DAFCF4C5AFDCBFE28A797A6 /* ChatHistoryView.swift in Sources */,
 				14407A7815BEA5D018E59AC0 /* ChatInputView.swift in Sources */,
+				054426D87FBA3D1B6BAD604D /* ChatMessageView.swift in Sources */,
 				1C7F302F6D0C9C9F4472379C /* ChatService.swift in Sources */,
 				52C7AF71265210F649FC9098 /* ChatWebViewVC.swift in Sources */,
 				E66F0524475D36B073F783D3 /* Color+Hex.swift in Sources */,

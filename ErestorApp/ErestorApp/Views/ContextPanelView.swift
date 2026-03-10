@@ -24,89 +24,105 @@ struct ContextPanelView: View {
             // Header
             header
 
-            // Event card
-            if let event = chatService.context?.currentEvent {
-                EventCardView(
-                    title: event.title,
-                    timeRange: "\(event.start) \u{2014} \(event.end)",
-                    progress: eventProgress(start: event.start, end: event.end),
-                    eventType: eventTypeFromTitle(event.title)
-                )
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Current event card (with timer inside, matching prototype)
+                    if let event = chatService.context?.currentEvent {
+                        EventCardView(
+                            title: event.title,
+                            timeRange: "\(event.startTime) \u{2014} \(event.endTime)",
+                            progress: eventProgress(start: event.startTime, end: event.endTime),
+                            eventType: eventTypeFromTitle(event.title)
+                        )
 
-                // Timer chip (if active)
-                if let timer = chatService.context?.timer {
-                    TimerChipView(
-                        elapsed: formatMinutes(timer.minutes),
-                        label: timer.desc,
-                        onStop: { stopTimer() }
-                    )
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 12)
-                }
-            }
-
-            separator
-
-            // Next event
-            if let next = chatService.context?.nextEvent {
-                NextEventView(
-                    timeRemaining: timeUntil(next.start),
-                    title: "\(next.title)"
-                )
-                separator
-            }
-
-            // Tasks
-            if let tasks = chatService.context?.p1Tasks, !tasks.isEmpty {
-                TaskListView(tasks: tasks)
-                separator
-            }
-
-            // Dynamic cards (poll / gate)
-            if let poll = activePoll {
-                PollCardView(type: poll.type, question: poll.question) { response in
-                    Task {
-                        await chatService.sendMessageStreaming("energia: \(response)")
-                    }
-                    activePoll = nil
-                }
-            }
-
-            if let gate = activeGate {
-                GateAlertView(
-                    text: gate.text,
-                    severity: gate.severity,
-                    actions: [
-                        GateAlertAction(label: "trocar timer") {
-                            Task { await chatService.sendMessageStreaming("trocar timer") }
-                            activeGate = nil
-                        },
-                        GateAlertAction(label: "ignorar") {
-                            activeGate = nil
+                        // Timer chip lives inside the event section
+                        if let timer = chatService.context?.timer {
+                            TimerChipView(
+                                elapsed: formatMinutes(timer.minutes),
+                                label: timer.desc,
+                                onStop: { stopTimer() }
+                            )
+                            .padding(.horizontal, 14)
+                            .padding(.bottom, 12)
                         }
-                    ]
-                )
+                    } else if chatService.context?.timer != nil {
+                        // Timer without event
+                        if let timer = chatService.context?.timer {
+                            TimerChipView(
+                                elapsed: formatMinutes(timer.minutes),
+                                label: timer.desc,
+                                onStop: { stopTimer() }
+                            )
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                        }
+                    }
+
+                    // Dynamic cards (poll / gate) — appear right after event
+                    if let poll = activePoll {
+                        PollCardView(type: poll.type, question: poll.question) { response in
+                            Task {
+                                await chatService.sendMessageStreaming("energia: \(response)")
+                            }
+                            activePoll = nil
+                        }
+                    }
+
+                    if let gate = activeGate {
+                        GateAlertView(
+                            text: gate.text,
+                            severity: gate.severity,
+                            actions: [
+                                GateAlertAction(label: "trocar timer") {
+                                    Task { await chatService.sendMessageStreaming("trocar timer") }
+                                    activeGate = nil
+                                },
+                                GateAlertAction(label: "ignorar") {
+                                    activeGate = nil
+                                }
+                            ]
+                        )
+                    }
+
+                    // Next event
+                    if let next = chatService.context?.nextEvent {
+                        separator
+                        let minsText: String = {
+                            if let mins = chatService.context?.minsToNext {
+                                if mins <= 0 { return "agora" }
+                                if mins < 60 { return "\(mins)min" }
+                                let h = mins / 60
+                                let m = mins % 60
+                                return m > 0 ? "\(h)h\(m)" : "\(h)h"
+                            }
+                            return timeUntil(next.startTime)
+                        }()
+                        NextEventView(
+                            timeRemaining: minsText,
+                            title: next.title
+                        )
+                    }
+
+                    // P1 Tasks
+                    if let ctx = chatService.context, !ctx.p1Tasks.isEmpty {
+                        separator
+                        TaskListView(tasks: ctx.p1Tasks)
+                    }
+                }
             }
 
             Spacer(minLength: 0)
 
-            // Chat history
-            ChatHistoryView(messages: chatService.messages)
+            // Chat history (expands upward when messages exist)
+            ChatHistoryView(messages: chatService.messages, isStreaming: chatService.isStreaming)
 
-            #if os(iOS)
-            // Day timeline (iOS only)
-            if let events = chatService.context?.todayEvents, !events.isEmpty {
-                DayTimelineView(events: events)
-                separator
-            }
-            #endif
-
-            // Chat input
+            // Chat input — always at bottom, disabled during streaming
             ChatInputView { text in
                 Task {
                     await chatService.sendMessageStreaming(text)
                 }
             }
+            .disabled(chatService.isStreaming)
         }
         #if os(macOS)
         .frame(width: 288)
@@ -249,11 +265,13 @@ struct ContextPanelView: View {
     private func eventTypeFromTitle(_ title: String) -> EventType {
         let lower = title.lowercased()
         if lower.contains("descanso") || lower.contains("almoco") || lower.contains("almoço")
-            || lower.contains("pausa") || lower.contains("desacelerar") || lower.contains("wind") {
+            || lower.contains("pausa") || lower.contains("desacelerar") || lower.contains("wind")
+            || lower.contains("café") || lower.contains("cafe") {
             return .rest
         }
         if lower.contains("deep") || lower.contains("work") || lower.contains("foco")
-            || lower.contains("reuniao") || lower.contains("reunião") || lower.contains("mentoria") {
+            || lower.contains("reuniao") || lower.contains("reunião") || lower.contains("mentoria")
+            || lower.contains("vender") || lower.contains("construir") || lower.contains("entregar") {
             return .work
         }
         return .free

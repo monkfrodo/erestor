@@ -1,5 +1,8 @@
 import Foundation
 import os
+#if os(macOS)
+import AppKit
+#endif
 
 private let logger = Logger(subsystem: "org.integros.erestor", category: "ChatService")
 
@@ -8,56 +11,205 @@ class ChatService: ObservableObject {
     @Published var messages: [ChatMessage] = []
     @Published var isLoading = false
     @Published var context: ContextSummary?
+    @Published var contextJSON: String?
     @Published var serverOnline = false
     @Published var actions: [ChatAction] = []
 
-    // Streaming state -- observed by ChatWebViewVC to push tokens to WebView
+    // Streaming state
     @Published var isStreaming = false
     @Published var streamDelta: StreamDelta?
 
-    private var statusTask: Task<Void, Never>?
-    private var pushTask: Task<Void, Never>?
+    // SSE event stream state
+    @Published var activePolls: [PollSSEEvent] = []
+    @Published var activeGates: [GateSSEEvent] = []
+
+    private var eventStreamTask: Task<Void, Never>?
+    private var heartbeatTimer: Task<Void, Never>?
+    private var lastHeartbeat = Date()
+    private var reconnectDelay: UInt64 = 3  // seconds, exponential backoff
+    private var lastSuccessfulRequest: Date = .distantPast
+    private var consecutiveFailures = 0
+
+    // Token batching for streaming performance
+    private var tokenBuffer = ""
+    private var tokenFlushTask: Task<Void, Never>?
 
     deinit {
-        statusTask?.cancel()
-        pushTask?.cancel()
+        eventStreamTask?.cancel()
+        heartbeatTimer?.cancel()
+        tokenFlushTask?.cancel()
     }
 
     init() {
-        startStatusPolling()
-        startPushPolling()
+        startEventStream()
+        startHeartbeatMonitor()
     }
 
-    /// Network call runs completely OFF MainActor — no focus stealing
-    private nonisolated static func pollStatus() async -> Bool {
-        guard let url = ErestorConfig.url(for: "/api/status") else { return false }
-        var request = URLRequest(url: url)
-        request.timeoutInterval = 5
-        ErestorConfig.authorize(&request)
-        do {
-            let (_, response) = try await URLSession.shared.data(for: request)
-            return (response as? HTTPURLResponse)?.statusCode == 200
-        } catch {
-            return false
+    // MARK: - SSE Event Stream (replaces all polling)
+
+    func startEventStream() {
+        eventStreamTask?.cancel()
+        eventStreamTask = Task { [weak self] in
+            guard let self else { return }
+
+            guard let url = ErestorConfig.url(for: ErestorConfig.eventsStreamPath) else {
+                logger.error("Invalid SSE URL")
+                return
+            }
+
+            var request = URLRequest(url: url)
+            ErestorConfig.authorize(&request)
+            request.timeoutInterval = .infinity
+
+            do {
+                let (bytes, response) = try await URLSession.shared.bytes(for: request)
+
+                guard let httpResponse = response as? HTTPURLResponse,
+                      httpResponse.statusCode == 200 else {
+                    logger.warning("SSE stream returned non-200 status")
+                    await self.scheduleReconnect()
+                    return
+                }
+
+                // Connected successfully -- reset backoff
+                self.reconnectDelay = 3
+                self.serverOnline = true
+                self.lastHeartbeat = Date()
+
+                for try await line in bytes.lines {
+                    guard !Task.isCancelled else { break }
+                    guard line.hasPrefix("data: ") else { continue }
+                    let jsonStr = String(line.dropFirst(6))
+                    self.handleSSEEvent(jsonStr)
+                }
+
+                // Stream ended normally (server closed)
+                if !Task.isCancelled {
+                    await self.scheduleReconnect()
+                }
+
+            } catch {
+                if !Task.isCancelled {
+                    logger.error("SSE stream error: \(error.localizedDescription)")
+                    await self.scheduleReconnect()
+                }
+            }
+        }
+
+        // Listen for wake notifications to force reconnect
+        #if os(macOS)
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.startEventStream()
+            }
+        }
+        #endif
+    }
+
+    private func scheduleReconnect() async {
+        guard !Task.isCancelled else { return }
+        logger.info("SSE reconnecting in \(self.reconnectDelay)s...")
+        try? await Task.sleep(nanoseconds: reconnectDelay * 1_000_000_000)
+        // Exponential backoff: 3 -> 6 -> 12 -> 24 -> 30 (cap)
+        reconnectDelay = min(reconnectDelay * 2, 30)
+        startEventStream()
+    }
+
+    private func handleSSEEvent(_ jsonStr: String) {
+        guard let event = SSEEvent.parse(from: jsonStr) else {
+            logger.warning("Failed to parse SSE event: \(jsonStr.prefix(200))")
+            return
+        }
+
+        lastHeartbeat = Date()
+
+        switch event.type {
+        case .contextUpdate:
+            // Decode full context from the data payload
+            if let dataDict = event.rawData["data"] as? [String: Any],
+               let jsonData = try? JSONSerialization.data(withJSONObject: dataDict) {
+                if let ctx = try? JSONDecoder().decode(ContextSummary.self, from: jsonData) {
+                    context = ctx
+                    contextJSON = String(data: jsonData, encoding: .utf8)
+                }
+            }
+            serverOnline = true
+
+        case .pollEnergy, .pollQuality:
+            if let jsonData = try? JSONSerialization.data(withJSONObject: event.rawData),
+               let poll = try? JSONDecoder().decode(PollSSEEvent.self, from: jsonData) {
+                activePolls.append(poll)
+
+                // Also post notification for ContextPanelView push handling
+                let eventType = event.type == .pollEnergy ? "poll_energy" : "poll_quality"
+                NotificationCenter.default.post(
+                    name: .erestorPushMessageReceived,
+                    object: nil,
+                    userInfo: [
+                        "text": poll.question,
+                        "eventType": eventType,
+                        "options": poll.options,
+                    ]
+                )
+            }
+
+        case .gateAlert:
+            if let jsonData = try? JSONSerialization.data(withJSONObject: event.rawData),
+               let gate = try? JSONDecoder().decode(GateSSEEvent.self, from: jsonData) {
+                activeGates.append(gate)
+
+                NotificationCenter.default.post(
+                    name: .erestorPushMessageReceived,
+                    object: nil,
+                    userInfo: [
+                        "text": gate.text,
+                        "eventType": "gate_inform",
+                        "severity": gate.severity,
+                    ]
+                )
+            }
+
+        case .pollExpired:
+            if let pollId = event.rawData["poll_id"] as? String {
+                activePolls.removeAll { $0.pollId == pollId }
+            }
+
+        case .pollReminder:
+            if let text = event.rawData["text"] as? String {
+                NotificationCenter.default.post(
+                    name: .erestorPushMessageReceived,
+                    object: nil,
+                    userInfo: ["text": text, "eventType": "reminder"]
+                )
+            }
+
+        case .heartbeat:
+            serverOnline = true
+            consecutiveFailures = 0
         }
     }
 
-    /// Only touches MainActor to update state — minimal main thread work
-    private func applyStatusResult(_ online: Bool) {
-        if online {
-            if !serverOnline { serverOnline = true }
-            lastSuccessfulRequest = Date()
-            consecutiveFailures = 0
-        } else {
-            consecutiveFailures += 1
-            let recentSuccess = Date().timeIntervalSince(lastSuccessfulRequest) < 30
-            if consecutiveFailures >= 3 && !recentSuccess {
-                if serverOnline { serverOnline = false }
+    // MARK: - Heartbeat Monitor (detects offline after 60s without heartbeat)
+
+    private func startHeartbeatMonitor() {
+        heartbeatTimer?.cancel()
+        heartbeatTimer = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 15_000_000_000) // check every 15s
+                guard let self else { break }
+                let elapsed = Date().timeIntervalSince(self.lastHeartbeat)
+                if elapsed > 60 {
+                    self.serverOnline = false
+                }
             }
         }
     }
 
-    // MARK: - Streaming send (SSE)
+    // MARK: - Streaming send (SSE) -- token-by-token
 
     func sendMessageStreaming(_ text: String) async {
         let userMsg = ChatMessage(
@@ -69,9 +221,15 @@ class ChatService: ObservableObject {
         actions = []
         isLoading = true
         isStreaming = true
+
+        // Create a streaming placeholder message
+        var streamingMsg = ChatMessage.streaming(timestamp: Self.currentTime())
+        messages.append(streamingMsg)
+        let streamingMsgId = streamingMsg.id
+
         streamDelta = StreamDelta(kind: .started, text: "", timestamp: Self.currentTime())
 
-        guard let url = ErestorConfig.url(for: "/api/chat/stream") else {
+        guard let url = ErestorConfig.url(for: ErestorConfig.chatStreamPath) else {
             isLoading = false
             isStreaming = false
             return
@@ -83,15 +241,23 @@ class ChatService: ObservableObject {
         request.timeoutInterval = 300  // 5 min
         ErestorConfig.authorize(&request)
 
-        let body = ["message": text]
-        request.httpBody = try? JSONEncoder().encode(body)
+        // Build request body with message + conversation history
+        let historyPayload = messages
+            .filter { $0.id != streamingMsgId }  // exclude the streaming placeholder
+            .prefix(20)  // last 20 messages for context
+            .map { ["role": $0.role == .user ? "user" : "assistant", "content": $0.text] }
+        let body: [String: Any] = [
+            "message": text,
+            "history": Array(historyPayload)
+        ]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         do {
             let (bytes, response) = try await URLSession.shared.bytes(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse,
                   httpResponse.statusCode == 200 else {
-                appendErrorMessage()
+                finalizeStreamingMessage(id: streamingMsgId, text: "Erro: servidor retornou status inesperado.")
                 return
             }
 
@@ -100,42 +266,35 @@ class ChatService: ObservableObject {
             var accumulated = ""
 
             for try await line in bytes.lines {
-                // SSE format: lines starting with "data: " contain JSON
                 guard line.hasPrefix("data: ") else { continue }
                 let jsonStr = String(line.dropFirst(6))
 
                 guard let jsonData = jsonStr.data(using: .utf8) else { continue }
 
-                // Try to decode as a chunk event
                 let chunk: SSEChunk?
                 do {
                     chunk = try JSONDecoder().decode(SSEChunk.self, from: jsonData)
                 } catch {
-                    logger.error("SSE decode failed: \(error.localizedDescription) — raw: \(jsonStr.prefix(200))")
+                    logger.error("SSE decode failed: \(error.localizedDescription) -- raw: \(jsonStr.prefix(200))")
                     chunk = nil
                 }
+
                 if let chunk {
                     if let done = chunk.done, done {
-                        NSLog("[Erestor] DONE event received, actions count: \(chunk.actions?.count ?? -1)")
                         if let fullResponse = chunk.fullResponse {
                             accumulated = fullResponse
                         }
-                        // API sends "responses" array — join if full_response is nil
                         if accumulated.isEmpty, let responses = chunk.responses {
                             accumulated = responses.joined(separator: "\n\n")
                         }
-                        // Execute actions IMMEDIATELY inside the loop
                         if let responseActions = chunk.actions, !responseActions.isEmpty {
-                            NSLog("[Erestor] Publishing actions NOW: \(responseActions.map { $0.type })")
                             actions = responseActions
                         }
                         break
                     } else if let chunkText = chunk.text {
-                        // Intermediate token/response chunk
-                        if !accumulated.isEmpty {
-                            accumulated += "\n\n"
-                        }
                         accumulated += chunkText
+                        // Update the streaming message with accumulated text
+                        updateStreamingMessage(id: streamingMsgId, text: accumulated)
                         streamDelta = StreamDelta(kind: .delta, text: chunkText, timestamp: "")
                     } else if let error = chunk.error {
                         logger.error("SSE error from server: \(error)")
@@ -144,39 +303,47 @@ class ChatService: ObservableObject {
                 }
             }
 
-            // Streaming done -- add the complete assistant message
+            // Streaming done -- finalize the message
             let finalText = accumulated.trimmingCharacters(in: .whitespacesAndNewlines)
-            let botMsg = ChatMessage(
-                role: .assistant,
-                text: finalText.isEmpty ? "..." : finalText,
-                timestamp: Self.currentTime()
-            )
-            messages.append(botMsg)
-
-            // ALWAYS publish .finished BEFORE actions -- this ensures
-            // finalizeStream() runs and re-enables the input field before
-            // any action (AppleScript, Process, etc.) can block the main thread.
-            streamDelta = StreamDelta(kind: .finished, text: botMsg.text, timestamp: Self.currentTime())
-            isLoading = false
-            isStreaming = false
+            finalizeStreamingMessage(id: streamingMsgId, text: finalText.isEmpty ? "..." : finalText)
 
         } catch {
             logger.error("Streaming failed: \(error.localizedDescription)")
             let recentlyOnline = Date().timeIntervalSince(lastSuccessfulRequest) < 60
             if recentlyOnline {
-                let timeoutMsg = ChatMessage(
-                    role: .assistant,
-                    text: "A resposta demorou demais e foi interrompida. Tenta de novo com uma mensagem mais curta.",
-                    timestamp: Self.currentTime()
+                finalizeStreamingMessage(
+                    id: streamingMsgId,
+                    text: "A resposta demorou demais e foi interrompida. Tenta de novo com uma mensagem mais curta."
                 )
-                messages.append(timeoutMsg)
-                streamDelta = StreamDelta(kind: .finished, text: timeoutMsg.text, timestamp: timeoutMsg.timestamp)
-                isLoading = false
-                isStreaming = false
             } else {
-                appendErrorMessage()
+                finalizeStreamingMessage(
+                    id: streamingMsgId,
+                    text: "Erro de conexao com o servidor. Verifica se a API esta rodando."
+                )
+                consecutiveFailures += 1
+                if consecutiveFailures >= 3 {
+                    serverOnline = false
+                }
             }
         }
+    }
+
+    /// Update a streaming message's text in-place (avoids re-creating the array)
+    private func updateStreamingMessage(id: UUID, text: String) {
+        if let idx = messages.firstIndex(where: { $0.id == id }) {
+            messages[idx].text = text
+        }
+    }
+
+    /// Finalize a streaming message: set final text, mark not streaming, update deltas
+    private func finalizeStreamingMessage(id: UUID, text: String) {
+        if let idx = messages.firstIndex(where: { $0.id == id }) {
+            messages[idx].text = text
+            messages[idx].isStreaming = false
+        }
+        streamDelta = StreamDelta(kind: .finished, text: text, timestamp: Self.currentTime())
+        isLoading = false
+        isStreaming = false
     }
 
     // MARK: - Non-streaming send (legacy fallback)
@@ -206,7 +373,6 @@ class ChatService: ObservableObject {
 
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
-            // API returns {"success": true, "responses": ["text1", "text2"]}
             if let apiResponse = try? JSONDecoder().decode(APIResponse.self, from: data),
                !apiResponse.responses.isEmpty {
                 let text = apiResponse.responses.joined(separator: "\n\n")
@@ -217,7 +383,6 @@ class ChatService: ObservableObject {
                 )
                 messages.append(botMsg)
             } else {
-                // Fallback: try legacy format
                 let response = try JSONDecoder().decode(ChatResponse.self, from: data)
                 let botMsg = ChatMessage(
                     role: .assistant,
@@ -244,151 +409,37 @@ class ChatService: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
             context = try JSONDecoder().decode(ContextSummary.self, from: data)
+            contextJSON = String(data: data, encoding: .utf8)
         } catch {
             context = nil
+            contextJSON = nil
         }
     }
-
-    private var lastSuccessfulRequest: Date = .distantPast
-    private var consecutiveFailures = 0
 
     func checkStatus() async {
         let online = await Self.pollStatus()
-        applyStatusResult(online)
-    }
-
-    /// Progressive status polling: 5s → 10s → 60s
-    private func startStatusPolling() {
-        statusTask = Task { [weak self] in
-            let intervals: [UInt64] = Array(repeating: 5, count: 6) + Array(repeating: 10, count: 6)
-            var idx = 0
-            while !Task.isCancelled {
-                let seconds = idx < intervals.count ? intervals[idx] : 60
-                try? await Task.sleep(nanoseconds: seconds * 1_000_000_000)
-                guard let self else { break }
-                await self.checkStatus()
-                idx += 1
-            }
+        if online {
+            if !serverOnline { serverOnline = true }
+            lastSuccessfulRequest = Date()
+            consecutiveFailures = 0
         }
     }
 
-    // MARK: - Push polling (replaces SSE push/listen)
-
-    private func startPushPolling() {
-        pushTask = Task { [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 3_000_000_000) // 3s
-                guard let self else { break }
-                await self.pollPushEvents()
-            }
-        }
-    }
-
-    /// Poll /api/push/pending for proactive messages from the gate
-    private func pollPushEvents() async {
-        guard serverOnline else { return }
-        guard let url = ErestorConfig.url(for: "/api/push/pending") else { return }
+    /// Network call runs completely OFF MainActor
+    private nonisolated static func pollStatus() async -> Bool {
+        guard let url = ErestorConfig.url(for: "/api/status") else { return false }
         var request = URLRequest(url: url)
         request.timeoutInterval = 5
         ErestorConfig.authorize(&request)
-
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse,
-                  httpResponse.statusCode == 200 else { return }
-
-            struct PushPendingResponse: Codable {
-                let success: Bool
-                let events: [PushEvent]
-            }
-
-            let decoded = try JSONDecoder().decode(PushPendingResponse.self, from: data)
-            for event in decoded.events {
-                await handlePushEvent(event)
-            }
+            let (_, response) = try await URLSession.shared.data(for: request)
+            return (response as? HTTPURLResponse)?.statusCode == 200
         } catch {
-            // Silent — push polling failures are not critical
-        }
-    }
-
-    /// Handle a single push event on the MainActor
-    private func handlePushEvent(_ event: PushEvent) async {
-        switch event.type {
-        case "message":
-            let text = event.text ?? ""
-            guard !text.isEmpty else { return }
-            let botMsg = ChatMessage(
-                role: .assistant,
-                text: text,
-                timestamp: Self.currentTime()
-            )
-            messages.append(botMsg)
-            streamDelta = StreamDelta(kind: .finished, text: botMsg.text, timestamp: botMsg.timestamp)
-            logger.info("Push message received: \(text.prefix(80))")
-
-            NotificationCenter.default.post(
-                name: .erestorPushMessageReceived,
-                object: nil,
-                userInfo: ["text": text, "eventType": "message"]
-            )
-
-        case "poll_energy", "poll_quality":
-            let text = event.text ?? (event.type == "poll_energy" ? "Como tá tua energia?" : "Como foi esse bloco?")
-            logger.info("Push \(event.type) received: \(text.prefix(80))")
-
-            NotificationCenter.default.post(
-                name: .erestorPushMessageReceived,
-                object: nil,
-                userInfo: [
-                    "text": text,
-                    "eventType": event.type,
-                    "options": event.options ?? [],
-                ]
-            )
-
-        case "gate_inform":
-            let text = event.text ?? "Alerta do gate"
-            logger.info("Push gate_inform received (\(event.severity ?? "amber")): \(text.prefix(80))")
-
-            NotificationCenter.default.post(
-                name: .erestorPushMessageReceived,
-                object: nil,
-                userInfo: [
-                    "text": text,
-                    "eventType": "gate_inform",
-                    "severity": event.severity ?? "amber",
-                ]
-            )
-
-        case "reminder":
-            let text = event.text ?? "Lembrete"
-            logger.info("Push reminder received: \(text.prefix(80))")
-
-            NotificationCenter.default.post(
-                name: .erestorPushMessageReceived,
-                object: nil,
-                userInfo: ["text": text, "eventType": "reminder"]
-            )
-
-        case "action":
-            if let pushActions = event.actions, !pushActions.isEmpty {
-                actions = pushActions
-                logger.info("Push actions received: \(pushActions.map { $0.type })")
-            }
-
-        case "context_update":
-            if let newContext = event.context {
-                context = newContext
-                logger.info("Push context update received")
-            }
-
-        default:
-            logger.warning("Unknown push event type: \(event.type)")
+            return false
         }
     }
 
     func clearHistory() async {
-        // Note: API doesn't have a /reset endpoint — just clear local state
         messages.removeAll()
     }
 
@@ -404,13 +455,8 @@ class ChatService: ObservableObject {
             guard let httpResponse = response as? HTTPURLResponse,
                   httpResponse.statusCode == 200 else { return }
 
-            // API returns {"success": true, "history": [{...}, ...], "text": "..."}
             struct APIHistoryResponse: Codable {
                 let history: [[String: String]]?
-            }
-            // Also try legacy format
-            struct LegacyHistoryResponse: Codable {
-                let history: [[String: String]]
             }
 
             if let decoded = try? JSONDecoder().decode(APIHistoryResponse.self, from: data),
@@ -438,7 +484,7 @@ class ChatService: ObservableObject {
     private func appendErrorMessage() {
         let errorMsg = ChatMessage(
             role: .assistant,
-            text: "Erro de conexão com o servidor. Verifica se a API está rodando.",
+            text: "Erro de conexao com o servidor. Verifica se a API esta rodando.",
             timestamp: Self.currentTime()
         )
         messages.append(errorMsg)
@@ -451,7 +497,7 @@ class ChatService: ObservableObject {
         isStreaming = false
     }
 
-    private static func currentTime() -> String {
+    static func currentTime() -> String {
         let fmt = DateFormatter()
         fmt.dateFormat = "HH:mm"
         fmt.timeZone = TimeZone(identifier: "America/Sao_Paulo")
@@ -461,14 +507,14 @@ class ChatService: ObservableObject {
 
 // MARK: - SSE Models
 
-/// Represents a single SSE data event from /api/chat/stream
+/// Represents a single SSE data event from /v1/chat/stream
 private struct SSEChunk: Codable {
     let text: String?
     let done: Bool?
     let fullResponse: String?
     let actions: [ChatAction]?
     let error: String?
-    let responses: [String]?  // API format: array of response strings
+    let responses: [String]?
 
     enum CodingKeys: String, CodingKey {
         case text, done, actions, error, responses
@@ -488,12 +534,12 @@ private struct APIResponse: Codable {
     let responses: [String]
 }
 
-/// Published to notify the WebView of streaming state changes
+/// Published to notify views of streaming state changes
 struct StreamDelta: Equatable {
     enum Kind: Equatable {
-        case started   // stream began -- create the message container
-        case delta     // new token chunk arrived
-        case finished  // stream complete -- finalize rendering
+        case started
+        case delta
+        case finished
     }
 
     let id = UUID()

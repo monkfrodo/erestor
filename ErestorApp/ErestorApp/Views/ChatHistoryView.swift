@@ -2,37 +2,37 @@ import SwiftUI
 
 struct ChatHistoryView: View {
     let messages: [ChatMessage]
+    let isStreaming: Bool
+
+    private let bottomAnchorID = "chat-bottom-anchor"
 
     var body: some View {
         if !messages.isEmpty {
             ScrollViewReader { proxy in
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 6) {
+                    LazyVStack(alignment: .leading, spacing: 6) {
                         ForEach(messages) { msg in
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text(msg.role == .user ? "kevin" : "erestor")
-                                    .font(DS.mono(9))
-                                    .foregroundColor(DS.muted)
-
-                                Text(msg.text)
-                                    .font(DS.body(11.5))
-                                    .foregroundColor(msg.role == .user ? DS.subtle : DS.text)
-                                    .lineSpacing(1.5)
-                            }
-                            .id(msg.id)
+                            ChatMessageView(message: msg)
+                                .id(msg.id)
                         }
+
+                        // Invisible anchor at the bottom for auto-scroll
+                        Color.clear
+                            .frame(height: 1)
+                            .id(bottomAnchorID)
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 6)
                 }
-                #if os(macOS)
-                .frame(maxHeight: 180)
-                #endif
                 .onChange(of: messages.count) { _ in
-                    if let last = messages.last {
-                        withAnimation {
-                            proxy.scrollTo(last.id, anchor: .bottom)
-                        }
+                    withAnimation(.easeOut(duration: 0.15)) {
+                        proxy.scrollTo(bottomAnchorID, anchor: .bottom)
+                    }
+                }
+                .onChange(of: messages.last?.text) { _ in
+                    // Also scroll when streaming appends text to the last message
+                    if isStreaming {
+                        proxy.scrollTo(bottomAnchorID, anchor: .bottom)
                     }
                 }
             }
