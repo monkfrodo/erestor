@@ -104,48 +104,48 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| API-01 | - | Pending |
-| API-02 | - | Pending |
-| API-03 | - | Pending |
-| API-04 | - | Pending |
-| API-05 | - | Pending |
-| API-06 | - | Pending |
-| PANEL-01 | - | Pending |
-| PANEL-02 | - | Pending |
-| PANEL-03 | - | Pending |
-| PANEL-04 | - | Pending |
-| PANEL-05 | - | Pending |
-| PANEL-06 | - | Pending |
-| PANEL-07 | - | Pending |
-| CHAT-01 | - | Pending |
-| CHAT-02 | - | Pending |
-| CHAT-03 | - | Pending |
-| CHAT-04 | - | Pending |
-| DATA-01 | - | Pending |
-| DATA-02 | - | Pending |
-| DATA-03 | - | Pending |
-| DATA-04 | - | Pending |
-| SYNT-01 | - | Pending |
-| SYNT-02 | - | Pending |
-| IOS-01 | - | Pending |
-| IOS-02 | - | Pending |
-| IOS-03 | - | Pending |
-| IOS-04 | - | Pending |
-| WEB-01 | - | Pending |
-| WEB-02 | - | Pending |
-| WEB-03 | - | Pending |
-| MIGR-01 | - | Pending |
-| MIGR-02 | - | Pending |
-| MIGR-03 | - | Pending |
-| NOTF-01 | - | Pending |
-| NOTF-02 | - | Pending |
-| NOTF-03 | - | Pending |
+| API-01 | Phase 1 | Pending |
+| API-02 | Phase 1 | Pending |
+| API-03 | Phase 1 | Pending |
+| API-04 | Phase 1 | Pending |
+| API-05 | Phase 1 | Pending |
+| API-06 | Phase 1 | Pending |
+| PANEL-01 | Phase 2 | Pending |
+| PANEL-02 | Phase 2 | Pending |
+| PANEL-03 | Phase 2 | Pending |
+| PANEL-04 | Phase 2 | Pending |
+| PANEL-05 | Phase 2 | Pending |
+| PANEL-06 | Phase 2 | Pending |
+| PANEL-07 | Phase 2 | Pending |
+| CHAT-01 | Phase 2 | Pending |
+| CHAT-02 | Phase 2 | Pending |
+| CHAT-03 | Phase 2 | Pending |
+| CHAT-04 | Phase 2 | Pending |
+| DATA-01 | Phase 2 | Pending |
+| DATA-02 | Phase 2 | Pending |
+| DATA-03 | Phase 2 | Pending |
+| DATA-04 | Phase 2 | Pending |
+| SYNT-01 | Phase 2 | Pending |
+| SYNT-02 | Phase 2 | Pending |
+| NOTF-01 | Phase 2 | Pending |
+| IOS-01 | Phase 3 | Pending |
+| IOS-02 | Phase 3 | Pending |
+| IOS-03 | Phase 3 | Pending |
+| IOS-04 | Phase 3 | Pending |
+| NOTF-02 | Phase 3 | Pending |
+| MIGR-01 | Phase 3 | Pending |
+| MIGR-02 | Phase 3 | Pending |
+| MIGR-03 | Phase 3 | Pending |
+| WEB-01 | Phase 4 | Pending |
+| WEB-02 | Phase 4 | Pending |
+| WEB-03 | Phase 4 | Pending |
+| NOTF-03 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 36 total
-- Mapped to phases: 0
-- Unmapped: 36 ⚠️
+- Mapped to phases: 36
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-09*
-*Last updated: 2026-03-09 after initial definition*
+*Last updated: 2026-03-09 after roadmap creation*
