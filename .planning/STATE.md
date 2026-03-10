@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-10T17:20:49.778Z"
-last_activity: 2026-03-10 -- Plan 03-05 executed (gap closure - iOS build verified, APNs commits confirmed)
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-10T18:06:16Z"
+last_activity: 2026-03-10 -- Plan 04-01 executed (PWA foundation with DS, stores, SSE, panel tab, responsive layouts)
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  total_plans: 16
+  completed_plans: 14
+  percent: 87
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Surface the right context at the right moment so Kevin can make better decisions about time and energy.
-**Current focus:** Phase 3: iOS Data Migration
+**Current focus:** Phase 4: Web PWA
 
 ## Current Position
 
-Phase: 3 of 4 (iOS Data Migration)
-Plan: 5 of 5 in current phase (phase complete)
+Phase: 4 of 4 (Web PWA)
+Plan: 1 of 3 in current phase
 Status: Executing
-Last activity: 2026-03-10 -- Plan 03-05 executed (gap closure - iOS build verified, APNs commits confirmed)
+Last activity: 2026-03-10 -- Plan 04-01 executed (PWA foundation with DS, stores, SSE, panel tab, responsive layouts)
 
-Progress: [██████████] 100%
+Progress: [████████░░] 87%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 14
 - Average duration: 4.5 min
-- Total execution time: 0.9 hours
+- Total execution time: 1.0 hours
 
 **By Phase:**
 
@@ -46,9 +46,10 @@ Progress: [██████████] 100%
 | 01-api-foundation | 2/2 | 7 min | 3.5 min |
 | 02-macos-experience | 5/5 | 25 min | 5.0 min |
 | 03-ios-data-migration | 5/5 | 24 min | 4.8 min |
+| 04-web-pwa | 1/3 | 7 min | 7.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (4 min), 03-02 (4 min), 03-03 (7 min), 03-04 (7 min), 03-05 (2 min)
+- Last 5 plans: 03-02 (4 min), 03-03 (7 min), 03-04 (7 min), 03-05 (2 min), 04-01 (7 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -110,6 +111,10 @@ Recent decisions affecting current work:
 - [03-04]: Always send APNs to iOS regardless of macOS presence (no deduplication)
 - [03-04]: Separate iOS sheet view files instead of inline in TabRootView
 - [03-05]: iPhone 17 Pro used as simulator destination (available with iOS 26.2 SDK)
+- [04-01]: Tailwind v4 @theme block + :root CSS vars for DS (dual access: Tailwind classes + var() inline)
+- [04-01]: Push-only service worker (no offline caching per PROJECT.md scope)
+- [04-01]: Query param auth for SSE (EventSource lacks header support, single-user acceptable)
+- [04-01]: Modified web/.gitignore to allow .env.example commit
 
 ### Pending Todos
 
@@ -122,6 +127,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T17:20:49.763Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-web-pwa/04-CONTEXT.md
+Last session: 2026-03-10T18:06:16Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: .planning/phases/04-web-pwa/04-01-SUMMARY.md
