@@ -78,9 +78,7 @@ struct ErestorIOSApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContextPanelView(chatService: chatService)
-                .preferredColorScheme(.dark)
-                .ignoresSafeArea(edges: .bottom)
+            iOS_TabRootView(chatService: chatService)
         }
     }
 }

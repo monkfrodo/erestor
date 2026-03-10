@@ -48,6 +48,11 @@ class ChatService: ObservableObject {
 
     // MARK: - SSE Event Stream (replaces all polling)
 
+    func stopEventStream() {
+        eventStreamTask?.cancel()
+        eventStreamTask = nil
+    }
+
     func startEventStream() {
         eventStreamTask?.cancel()
         eventStreamTask = Task { [weak self] in
@@ -148,8 +153,12 @@ class ChatService: ObservableObject {
                 let eventType = event.type == .pollEnergy ? "poll_energy" : "poll_quality"
                 let categoryId = event.type == .pollEnergy ? "POLL_ENERGY" : "POLL_QUALITY"
 
-                // Post macOS notification if panel is NOT visible
+                // Post notification if panel is NOT visible (macOS only check)
+                #if os(macOS)
                 let panelVisible = BubbleWindowController.shared.isChatVisible
+                #else
+                let panelVisible = false
+                #endif
                 if !panelVisible {
                     postPollNotification(
                         pollId: poll.pollId,
