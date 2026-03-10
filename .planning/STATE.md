@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 2 planned, execution paused at Wave 1 (context limit)
-last_updated: "2026-03-10T02:21:10.562Z"
-last_activity: 2026-03-10 -- Plan 01-02 executed (chat SSE + calendar endpoints)
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-03-10T10:44:29Z"
+last_activity: 2026-03-10 -- Plan 02-02 executed (poll CRUD API + synthesis endpoints)
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 2
-  percent: 25
+  completed_plans: 4
+  percent: 50
 ---
 
 # Project State
@@ -21,32 +21,33 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Surface the right context at the right moment so Kevin can make better decisions about time and energy.
-**Current focus:** Phase 1: API Foundation
+**Current focus:** Phase 2: macOS Experience
 
 ## Current Position
 
-Phase: 1 of 4 (API Foundation) -- COMPLETE
-Plan: 2 of 2 in current phase (all done)
+Phase: 2 of 4 (macOS Experience)
+Plan: 2 of 4 in current phase
 Status: Executing
-Last activity: 2026-03-10 -- Plan 01-02 executed (chat SSE + calendar endpoints)
+Last activity: 2026-03-10 -- Plan 02-02 executed (poll CRUD API + synthesis endpoints)
 
-Progress: [██░░░░░░░░] 25%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 3.5 min
-- Total execution time: 0.12 hours
+- Total plans completed: 4
+- Average duration: 4.5 min
+- Total execution time: 0.3 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-api-foundation | 2/2 | 7 min | 3.5 min |
+| 02-macos-experience | 1/4 | 5 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3 min), 01-02 (4 min)
+- Last 5 plans: 01-01 (3 min), 01-02 (4 min), 02-01 (5 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -69,6 +70,12 @@ Recent decisions affecting current work:
 - [01-02]: Lazy imports in calendar router to avoid Python 3.9 type annotation crash
 - [01-02]: Single-chunk SSE for chat (true streaming deferred to Phase 2)
 - [01-02]: sys.modules mocking pattern for calendar tests (Python 3.9 compat)
+- [02-01]: AsyncAnthropic with lazy init for optional SDK dependency
+- [02-01]: asyncio.Queue for SSE event distribution (single-user, no Redis)
+- [02-01]: Heartbeat via asyncio.wait_for timeout pattern
+- [02-01]: Action parsing with regex [ACTION:type:params] from response text
+- [02-01]: System prompt = soul.md + WorldState JSON snapshot
+- [02-01]: Removed obsolete test_chat_stream.py replaced by test_chat_anthropic.py
 
 ### Pending Todos
 
@@ -81,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T02:21:10.545Z
-Stopped at: Phase 2 planned, execution paused at Wave 1 (context limit)
-Resume file: .planning/phases/02-macos-experience/02-01-PLAN.md
+Last session: 2026-03-10T10:43:47Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: .planning/phases/02-macos-experience/02-02-PLAN.md

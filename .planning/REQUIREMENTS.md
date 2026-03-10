@@ -22,12 +22,12 @@
 - [ ] **PANEL-04**: Active timer with project/task label and stop button
 - [ ] **PANEL-05**: Next event preview with time until
 - [ ] **PANEL-06**: Task list for the day with priority indicators
-- [ ] **PANEL-07**: Real-time panel updates via SSE (no polling)
+- [x] **PANEL-07**: Real-time panel updates via SSE (no polling)
 
 ### Chat
 
-- [ ] **CHAT-01**: Natural language commands to create events, set reminders, ask questions
-- [ ] **CHAT-02**: Streaming responses from Claude displayed in real-time
+- [x] **CHAT-01**: Natural language commands to create events, set reminders, ask questions
+- [x] **CHAT-02**: Streaming responses from Claude displayed in real-time
 - [ ] **CHAT-03**: Conversation history persists within session
 - [ ] **CHAT-04**: Chat input always visible at bottom of panel
 
@@ -116,9 +116,9 @@
 | PANEL-04 | Phase 2 | Pending |
 | PANEL-05 | Phase 2 | Pending |
 | PANEL-06 | Phase 2 | Pending |
-| PANEL-07 | Phase 2 | Pending |
-| CHAT-01 | Phase 2 | Pending |
-| CHAT-02 | Phase 2 | Pending |
+| PANEL-07 | Phase 2 | Complete |
+| CHAT-01 | Phase 2 | Complete |
+| CHAT-02 | Phase 2 | Complete |
 | CHAT-03 | Phase 2 | Pending |
 | CHAT-04 | Phase 2 | Pending |
 | DATA-01 | Phase 2 | Pending |

@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md -- FastAPI app setup with auth, schemas, status and context endpoints
-- [ ] 01-02-PLAN.md -- Chat streaming SSE and calendar read/write endpoints
+- [x] 01-02-PLAN.md -- Chat streaming SSE and calendar read/write endpoints
 
 ### Phase 2: macOS Experience
 **Goal**: Kevin has a fully functional macOS contextual panel that replaces Telegram as his primary Erestor interface
@@ -47,7 +47,7 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 02-01-PLAN.md -- Backend SSE event stream + Anthropic SDK chat migration
+- [x] 02-01-PLAN.md -- Backend SSE event stream + Anthropic SDK chat migration
 - [ ] 02-02-PLAN.md -- Backend poll storage, CRUD API, and synthesis endpoints
 - [ ] 02-03-PLAN.md -- Swift SSE client, MarkdownUI chat, and token streaming
 - [ ] 02-04-PLAN.md -- Panel layout restructure, collapsible tasks, poll/gate card updates
@@ -89,7 +89,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. API Foundation | 1/2 | In progress | - |
-| 2. macOS Experience | 0/6 | Not started | - |
+| 1. API Foundation | 2/2 | Complete | 2026-03-10 |
+| 2. macOS Experience | 1/6 | In progress | - |
 | 3. iOS + Data Migration | 0/2 | Not started | - |
 | 4. Web PWA | 0/1 | Not started | - |
