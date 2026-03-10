@@ -1,0 +1,151 @@
+# Requirements: Erestor
+
+**Defined:** 2026-03-09
+**Core Value:** Surface the right context at the right moment so Kevin can make better decisions about time and energy.
+
+## v1 Requirements
+
+### Backend API
+
+- [ ] **API-01**: FastAPI gateway wrapping existing Python services with REST + SSE endpoints
+- [ ] **API-02**: Chat streaming endpoint using Claude API via SSE
+- [ ] **API-03**: Context endpoint returning current event, active timer, tasks, and next event in real-time
+- [ ] **API-04**: Calendar read endpoint returning day agenda from Google Calendar
+- [ ] **API-05**: Calendar write endpoint creating events via natural language parsed by Claude
+- [ ] **API-06**: Core logic extracted from Telegram bot handlers into clean reusable functions
+
+### Contextual Panel (macOS)
+
+- [ ] **PANEL-01**: Floating bubble (NSPanel) that does not steal focus, always visible
+- [ ] **PANEL-02**: Global hotkey (Cmd+Shift+E) to toggle panel via Carbon
+- [ ] **PANEL-03**: Current calendar event displayed with progress bar
+- [ ] **PANEL-04**: Active timer with project/task label and stop button
+- [ ] **PANEL-05**: Next event preview with time until
+- [ ] **PANEL-06**: Task list for the day with priority indicators
+- [ ] **PANEL-07**: Real-time panel updates via SSE (no polling)
+
+### Chat
+
+- [ ] **CHAT-01**: Natural language commands to create events, set reminders, ask questions
+- [ ] **CHAT-02**: Streaming responses from Claude displayed in real-time
+- [ ] **CHAT-03**: Conversation history persists within session
+- [ ] **CHAT-04**: Chat input always visible at bottom of panel
+
+### Data Collection
+
+- [ ] **DATA-01**: Energy check-in polls (1-5 scale) triggered at intelligent moments
+- [ ] **DATA-02**: Block quality assessment poll at end of calendar blocks (perdi/meh/ok/flow)
+- [ ] **DATA-03**: Proactive gate alerts when block is ending and tasks remain open
+- [ ] **DATA-04**: Poll responses stored and available for synthesis
+
+### Synthesis & Insights
+
+- [ ] **SYNT-01**: Evolved daily synthesis crossing polls, timers, blocks, and energy data
+- [ ] **SYNT-02**: On-demand insights from collected data via chat ("como foi minha semana?")
+
+### Mobile (iOS)
+
+- [ ] **IOS-01**: Contextual panel adapted for iPhone (event, timer, tasks, chat)
+- [ ] **IOS-02**: Full day agenda view with all scheduled blocks
+- [ ] **IOS-03**: Inline energy and block quality polls
+- [ ] **IOS-04**: Push notifications with inline actions (APNs)
+
+### Web (PWA)
+
+- [ ] **WEB-01**: Progressive Web App with same panel functionality as native
+- [ ] **WEB-02**: Chat interface with streaming
+- [ ] **WEB-03**: Web push notifications
+
+### Data Migration
+
+- [ ] **MIGR-01**: Historical mood/energy data migrated from Telegram system
+- [ ] **MIGR-02**: Memory system data (people, projects, context) migrated to new storage
+- [ ] **MIGR-03**: Log history preserved and accessible in new system
+
+### Notifications
+
+- [ ] **NOTF-01**: Native macOS notifications with inline actions (polls, quick responses)
+- [ ] **NOTF-02**: iOS push notifications via APNs with inline actions
+- [ ] **NOTF-03**: Web push notifications via Web Push API
+
+## v2 Requirements
+
+### Advanced Analytics
+
+- **ANLT-01**: Weekly/monthly pattern reports (energy curves, focus patterns)
+- **ANLT-02**: Correlation analysis (sleep vs focus, meeting load vs energy)
+
+### Integrations
+
+- **INTG-01**: ActivityWatch integration for automatic activity tracking
+- **INTG-02**: Notion integration for task sync
+- **INTG-03**: Apple Health data import (sleep, exercise)
+
+### UX Polish
+
+- **UX-01**: macOS widgets (WidgetKit) for quick glance
+- **UX-02**: iOS widgets for home screen context
+- **UX-03**: Siri Shortcuts integration
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Telegram bot interface | Being fully replaced — no parallel running |
+| Multi-user support | Erestor is Kevin's personal tool exclusively |
+| Voice interface | Text-based only for v1, voice adds complexity |
+| Offline-first architecture | Requires backend connection for Claude and data |
+| Gamification (streaks, points) | Anti-pattern for wellbeing tools — creates anxiety |
+| Food/exercise tracking | Apple Health handles this; Erestor is about focus and energy |
+| Full task management system | Not a project manager — shows tasks, doesn't manage them |
+| Android app | Kevin uses Apple ecosystem only |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| API-01 | - | Pending |
+| API-02 | - | Pending |
+| API-03 | - | Pending |
+| API-04 | - | Pending |
+| API-05 | - | Pending |
+| API-06 | - | Pending |
+| PANEL-01 | - | Pending |
+| PANEL-02 | - | Pending |
+| PANEL-03 | - | Pending |
+| PANEL-04 | - | Pending |
+| PANEL-05 | - | Pending |
+| PANEL-06 | - | Pending |
+| PANEL-07 | - | Pending |
+| CHAT-01 | - | Pending |
+| CHAT-02 | - | Pending |
+| CHAT-03 | - | Pending |
+| CHAT-04 | - | Pending |
+| DATA-01 | - | Pending |
+| DATA-02 | - | Pending |
+| DATA-03 | - | Pending |
+| DATA-04 | - | Pending |
+| SYNT-01 | - | Pending |
+| SYNT-02 | - | Pending |
+| IOS-01 | - | Pending |
+| IOS-02 | - | Pending |
+| IOS-03 | - | Pending |
+| IOS-04 | - | Pending |
+| WEB-01 | - | Pending |
+| WEB-02 | - | Pending |
+| WEB-03 | - | Pending |
+| MIGR-01 | - | Pending |
+| MIGR-02 | - | Pending |
+| MIGR-03 | - | Pending |
+| NOTF-01 | - | Pending |
+| NOTF-02 | - | Pending |
+| NOTF-03 | - | Pending |
+
+**Coverage:**
+- v1 requirements: 36 total
+- Mapped to phases: 0
+- Unmapped: 36 ⚠️
+
+---
+*Requirements defined: 2026-03-09*
+*Last updated: 2026-03-09 after initial definition*
