@@ -66,10 +66,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 03-01-PLAN.md -- Data migration (memory system tables, idempotent script) + insights API endpoint
-- [ ] 03-02-PLAN.md -- iOS app foundation (TabView + Painel tab + Chat + scenePhase SSE lifecycle)
-- [ ] 03-03-PLAN.md -- iOS Agenda tab (vertical timeline, swipe, detail sheet) + Insights tab (Swift Charts)
-- [ ] 03-04-PLAN.md -- iOS poll/gate modal sheets + notification categories + backend APNs integration
+- [x] 03-01-PLAN.md -- Data migration (memory system tables, idempotent script) + insights API endpoint
+- [x] 03-02-PLAN.md -- iOS app foundation (TabView + Painel tab + Chat + scenePhase SSE lifecycle)
+- [x] 03-03-PLAN.md -- iOS Agenda tab (vertical timeline, swipe, detail sheet) + Insights tab (Swift Charts)
+- [x] 03-04-PLAN.md -- iOS poll/gate modal sheets + notification categories + backend APNs integration
 
 ### Phase 4: Web PWA
 **Goal**: Kevin can access Erestor from any browser as a fallback when not on an Apple device
