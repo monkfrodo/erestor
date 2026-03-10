@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 3 context gathered
-last_updated: "2026-03-10T15:22:33.433Z"
-last_activity: 2026-03-10 -- Plan 02-05 executed (macOS notifications + backend poll scheduling)
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-03-10T15:46:16Z"
+last_activity: 2026-03-10 -- Plan 03-01 executed (data migration + insights API)
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 8
-  completed_plans: 8
-  percent: 64
+  completed_plans: 9
+  percent: 72
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Surface the right context at the right moment so Kevin can make better decisions about time and energy.
-**Current focus:** Phase 2: macOS Experience
+**Current focus:** Phase 3: iOS Data Migration
 
 ## Current Position
 
-Phase: 2 of 4 (macOS Experience)
-Plan: 5 of 6 in current phase
+Phase: 3 of 4 (iOS Data Migration)
+Plan: 1 of 2 in current phase
 Status: Executing
-Last activity: 2026-03-10 -- Plan 02-05 executed (macOS notifications + backend poll scheduling)
+Last activity: 2026-03-10 -- Plan 03-01 executed (data migration + insights API)
 
-Progress: [██████░░░░] 64%
+Progress: [███████░░░] 72%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 4.6 min
-- Total execution time: 0.5 hours
+- Total plans completed: 8
+- Average duration: 4.5 min
+- Total execution time: 0.6 hours
 
 **By Phase:**
 
@@ -45,9 +45,10 @@ Progress: [██████░░░░] 64%
 |-------|-------|-------|----------|
 | 01-api-foundation | 2/2 | 7 min | 3.5 min |
 | 02-macos-experience | 5/5 | 25 min | 5.0 min |
+| 03-ios-data-migration | 1/2 | 4 min | 4.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (5 min), 02-02 (6 min), 02-03 (5 min), 02-04 (5 min), 02-05 (4 min)
+- Last 5 plans: 02-02 (6 min), 02-03 (5 min), 02-04 (5 min), 02-05 (4 min), 03-01 (4 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -93,6 +94,10 @@ Recent decisions affecting current work:
 - [02-05]: Poll scheduler as asyncio.create_task alongside SSE generator, cancelled on disconnect
 - [02-05]: Energy polls require ACTIVE presence + work hours (8-21h) to trigger
 - [02-05]: 22h daily synthesis triggered by scheduler, stored in daily_signals, pushed via SSE
+- [03-01]: UNIQUE constraints on name/filename columns for idempotent memory migration
+- [03-01]: Optional dir parameters in migrate functions for testability with tmp_path
+- [03-01]: Content type derived from filename stem (behavior-model.json -> behavior_model)
+- [03-01]: Timer data stored as minutes, converted to hours in API response
 
 ### Pending Todos
 
@@ -105,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T15:22:33.420Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-ios-data-migration/03-CONTEXT.md
+Last session: 2026-03-10T15:46:16Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: .planning/phases/03-ios-data-migration/03-01-SUMMARY.md
