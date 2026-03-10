@@ -1,0 +1,76 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500&display=swap");
+
+@theme {
+  --color-ds-surface: #1e1c1a;
+  --color-ds-border: #2a2725;
+  --color-ds-muted: #3d3733;
+  --color-ds-dim: #4a4540;
+  --color-ds-subtle: #6b5b50;
+  --color-ds-text: #b8a99d;
+  --color-ds-bright: #e0d5ca;
+
+  --color-ds-green: #4a9e69;
+  --color-ds-blue: #5b6d99;
+  --color-ds-red: #c25a4a;
+  --color-ds-amber: #c9a84c;
+
+  --color-ds-green-dim: rgba(74, 158, 105, 0.08);
+  --color-ds-blue-dim: rgba(91, 109, 153, 0.08);
+  --color-ds-red-dim: rgba(194, 90, 74, 0.08);
+  --color-ds-amber-dim: rgba(201, 168, 76, 0.08);
+
+  --color-ds-s2: #242120;
+  --color-ds-bg: #1a1816;
+
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-body: "Inter", system-ui, sans-serif;
+}
+
+:root {
+  --ds-surface: #1e1c1a;
+  --ds-border: #2a2725;
+  --ds-muted: #3d3733;
+  --ds-dim: #4a4540;
+  --ds-subtle: #6b5b50;
+  --ds-text: #b8a99d;
+  --ds-bright: #e0d5ca;
+
+  --ds-green: #4a9e69;
+  --ds-blue: #5b6d99;
+  --ds-red: #c25a4a;
+  --ds-amber: #c9a84c;
+
+  --ds-green-dim: rgba(74, 158, 105, 0.08);
+  --ds-blue-dim: rgba(91, 109, 153, 0.08);
+  --ds-red-dim: rgba(194, 90, 74, 0.08);
+  --ds-amber-dim: rgba(201, 168, 76, 0.08);
+
+  --ds-s2: #242120;
+  --ds-bg: #1a1816;
+}
+
+body {
+  background: var(--ds-bg);
+  color: var(--ds-text);
+  font-family: var(--font-body);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ds-border);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
