@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: API Foundation** - FastAPI gateway wrapping existing Python services with REST + SSE endpoints
 - [ ] **Phase 2: macOS Experience** - Full contextual panel with chat, data collection, synthesis, and native notifications on macOS
 - [ ] **Phase 3: iOS + Data Migration** - iOS app with context panel, push notifications, and historical data migration
-- [ ] **Phase 4: Web PWA** - Progressive web app as browser fallback with same core functionality
+- [x] **Phase 4: Web PWA** - Progressive web app as browser fallback with same core functionality (completed 2026-03-10)
 
 ## Phase Details
 
@@ -97,4 +97,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. API Foundation | 2/2 | Complete | 2026-03-10 |
 | 2. macOS Experience | 5/6 | In Progress|  |
 | 3. iOS + Data Migration | 4/5 | In Progress|  |
-| 4. Web PWA | 2/3 | In Progress|  |
+| 4. Web PWA | 3/3 | Complete   | 2026-03-10 |

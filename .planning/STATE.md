@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-03-10T18:14:10Z"
-last_activity: 2026-03-10 -- Plan 04-02 executed (Chat tab with streaming, Agenda timeline, Insights charts)
+status: complete
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-03-10T18:17:35Z"
+last_activity: 2026-03-10 -- Plan 04-03 executed (Poll/gate modals + web push notifications)
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 16
-  completed_plans: 15
-  percent: 93
+  completed_plans: 16
+  percent: 100
 ---
 
 # Project State
@@ -26,18 +26,18 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 4 of 4 (Web PWA)
-Plan: 2 of 3 in current phase
-Status: Executing
-Last activity: 2026-03-10 -- Plan 04-02 executed (Chat tab with streaming, Agenda timeline, Insights charts)
+Plan: 3 of 3 in current phase
+Status: Phase Complete
+Last activity: 2026-03-10 -- Plan 04-03 executed (Poll/gate modals + web push notifications)
 
-Progress: [█████████░] 93%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
-- Average duration: 4.5 min
-- Total execution time: 1.0 hours
+- Total plans completed: 16
+- Average duration: 4.6 min
+- Total execution time: 1.2 hours
 
 **By Phase:**
 
@@ -46,10 +46,10 @@ Progress: [█████████░] 93%
 | 01-api-foundation | 2/2 | 7 min | 3.5 min |
 | 02-macos-experience | 5/5 | 25 min | 5.0 min |
 | 03-ios-data-migration | 5/5 | 24 min | 4.8 min |
-| 04-web-pwa | 2/3 | 11 min | 5.5 min |
+| 04-web-pwa | 3/3 | 18 min | 6.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-03 (7 min), 03-04 (7 min), 03-05 (2 min), 04-01 (7 min), 04-02 (4 min)
+- Last 5 plans: 03-04 (7 min), 03-05 (2 min), 04-01 (7 min), 04-02 (4 min), 04-03 (7 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -119,6 +119,11 @@ Recent decisions affecting current work:
 - [04-02]: Lazy require() for react-markdown/rehype-highlight (only for completed assistant messages)
 - [04-02]: CSS-based charts for insights (no charting library, thin client principle)
 - [04-02]: Vesper Dark highlight.js overrides via CSS custom properties
+- [04-03]: Push permission requested after first user click, not on page load (stored in localStorage)
+- [04-03]: pywebpush as server dependency with graceful fallback when not installed
+- [04-03]: verify_token updated with query param fallback for EventSource SSE compatibility
+- [04-03]: Web push sent alongside APNs (no deduplication per user decision)
+- [04-03]: Stale subscriptions auto-cleaned on 410 Gone response from push service
 
 ### Pending Todos
 
@@ -131,6 +136,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T18:14:10Z
-Stopped at: Completed 04-02-PLAN.md
-Resume file: .planning/phases/04-web-pwa/04-02-SUMMARY.md
+Last session: 2026-03-10T18:17:35Z
+Stopped at: Completed 04-03-PLAN.md (ALL PLANS COMPLETE)
+Resume file: .planning/phases/04-web-pwa/04-03-SUMMARY.md

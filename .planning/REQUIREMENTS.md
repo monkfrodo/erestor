@@ -54,7 +54,7 @@
 
 - [x] **WEB-01**: Progressive Web App with same panel functionality as native
 - [x] **WEB-02**: Chat interface with streaming
-- [ ] **WEB-03**: Web push notifications
+- [x] **WEB-03**: Web push notifications
 
 ### Data Migration
 
@@ -66,7 +66,7 @@
 
 - [x] **NOTF-01**: Native macOS notifications with inline actions (polls, quick responses)
 - [x] **NOTF-02**: iOS push notifications via APNs with inline actions
-- [ ] **NOTF-03**: Web push notifications via Web Push API
+- [x] **NOTF-03**: Web push notifications via Web Push API
 
 ## v2 Requirements
 
@@ -138,8 +138,8 @@
 | MIGR-03 | Phase 3 | Complete |
 | WEB-01 | Phase 4 | Complete |
 | WEB-02 | Phase 4 | Complete |
-| WEB-03 | Phase 4 | Pending |
-| NOTF-03 | Phase 4 | Pending |
+| WEB-03 | Phase 4 | Complete |
+| NOTF-03 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 36 total
