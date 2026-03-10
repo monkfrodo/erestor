@@ -33,15 +33,15 @@
 
 ### Data Collection
 
-- [ ] **DATA-01**: Energy check-in polls (1-5 scale) triggered at intelligent moments
-- [ ] **DATA-02**: Block quality assessment poll at end of calendar blocks (perdi/meh/ok/flow)
-- [ ] **DATA-03**: Proactive gate alerts when block is ending and tasks remain open
-- [ ] **DATA-04**: Poll responses stored and available for synthesis
+- [x] **DATA-01**: Energy check-in polls (1-5 scale) triggered at intelligent moments
+- [x] **DATA-02**: Block quality assessment poll at end of calendar blocks (perdi/meh/ok/flow)
+- [x] **DATA-03**: Proactive gate alerts when block is ending and tasks remain open
+- [x] **DATA-04**: Poll responses stored and available for synthesis
 
 ### Synthesis & Insights
 
-- [ ] **SYNT-01**: Evolved daily synthesis crossing polls, timers, blocks, and energy data
-- [ ] **SYNT-02**: On-demand insights from collected data via chat ("como foi minha semana?")
+- [x] **SYNT-01**: Evolved daily synthesis crossing polls, timers, blocks, and energy data
+- [x] **SYNT-02**: On-demand insights from collected data via chat ("como foi minha semana?")
 
 ### Mobile (iOS)
 
@@ -121,12 +121,12 @@
 | CHAT-02 | Phase 2 | Complete |
 | CHAT-03 | Phase 2 | Pending |
 | CHAT-04 | Phase 2 | Pending |
-| DATA-01 | Phase 2 | Pending |
-| DATA-02 | Phase 2 | Pending |
-| DATA-03 | Phase 2 | Pending |
-| DATA-04 | Phase 2 | Pending |
-| SYNT-01 | Phase 2 | Pending |
-| SYNT-02 | Phase 2 | Pending |
+| DATA-01 | Phase 2 | Complete |
+| DATA-02 | Phase 2 | Complete |
+| DATA-03 | Phase 2 | Complete |
+| DATA-04 | Phase 2 | Complete |
+| SYNT-01 | Phase 2 | Complete |
+| SYNT-02 | Phase 2 | Complete |
 | NOTF-01 | Phase 2 | Pending |
 | IOS-01 | Phase 3 | Pending |
 | IOS-02 | Phase 3 | Pending |

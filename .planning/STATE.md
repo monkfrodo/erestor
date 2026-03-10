@@ -44,10 +44,10 @@ Progress: [█████░░░░░] 50%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-api-foundation | 2/2 | 7 min | 3.5 min |
-| 02-macos-experience | 1/4 | 5 min | 5 min |
+| 02-macos-experience | 2/4 | 11 min | 5.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3 min), 01-02 (4 min), 02-01 (5 min)
+- Last 5 plans: 01-01 (3 min), 01-02 (4 min), 02-01 (5 min), 02-02 (6 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -76,6 +76,10 @@ Recent decisions affecting current work:
 - [02-01]: Action parsing with regex [ACTION:type:params] from response text
 - [02-01]: System prompt = soul.md + WorldState JSON snapshot
 - [02-01]: Removed obsolete test_chat_stream.py replaced by test_chat_anthropic.py
+- [02-02]: Default options per poll type in router (energy 5-level, block_quality 4-level)
+- [02-02]: Claude calls in mockable functions for synthesis/query testing
+- [02-02]: Simple keyword matching for date range parsing (semana, mes, ontem)
+- [02-02]: Gate alerts as poll_type="gate" in poll_responses table
 
 ### Pending Todos
 
@@ -88,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T10:43:47Z
-Stopped at: Completed 02-01-PLAN.md
-Resume file: .planning/phases/02-macos-experience/02-02-PLAN.md
+Last session: 2026-03-10T10:44:29Z
+Stopped at: Completed 02-02-PLAN.md
+Resume file: .planning/phases/02-macos-experience/02-03-PLAN.md
