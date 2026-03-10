@@ -16,12 +16,12 @@
 
 ### Contextual Panel (macOS)
 
-- [ ] **PANEL-01**: Floating bubble (NSPanel) that does not steal focus, always visible
-- [ ] **PANEL-02**: Global hotkey (Cmd+Shift+E) to toggle panel via Carbon
-- [ ] **PANEL-03**: Current calendar event displayed with progress bar
-- [ ] **PANEL-04**: Active timer with project/task label and stop button
-- [ ] **PANEL-05**: Next event preview with time until
-- [ ] **PANEL-06**: Task list for the day with priority indicators
+- [x] **PANEL-01**: Floating bubble (NSPanel) that does not steal focus, always visible
+- [x] **PANEL-02**: Global hotkey (Cmd+Shift+E) to toggle panel via Carbon
+- [x] **PANEL-03**: Current calendar event displayed with progress bar
+- [x] **PANEL-04**: Active timer with project/task label and stop button
+- [x] **PANEL-05**: Next event preview with time until
+- [x] **PANEL-06**: Task list for the day with priority indicators
 - [x] **PANEL-07**: Real-time panel updates via SSE (no polling)
 
 ### Chat
@@ -110,12 +110,12 @@
 | API-04 | Phase 1 | Complete |
 | API-05 | Phase 1 | Complete |
 | API-06 | Phase 1 | Complete |
-| PANEL-01 | Phase 2 | Pending |
-| PANEL-02 | Phase 2 | Pending |
-| PANEL-03 | Phase 2 | Pending |
-| PANEL-04 | Phase 2 | Pending |
-| PANEL-05 | Phase 2 | Pending |
-| PANEL-06 | Phase 2 | Pending |
+| PANEL-01 | Phase 2 | Complete |
+| PANEL-02 | Phase 2 | Complete |
+| PANEL-03 | Phase 2 | Complete |
+| PANEL-04 | Phase 2 | Complete |
+| PANEL-05 | Phase 2 | Complete |
+| PANEL-06 | Phase 2 | Complete |
 | PANEL-07 | Phase 2 | Complete |
 | CHAT-01 | Phase 2 | Complete |
 | CHAT-02 | Phase 2 | Complete |
@@ -148,4 +148,4 @@
 
 ---
 *Requirements defined: 2026-03-09*
-*Last updated: 2026-03-10 after 01-01 plan execution*
+*Last updated: 2026-03-10 after 02-04 plan execution*
