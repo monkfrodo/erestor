@@ -52,6 +52,40 @@ class SSEManager {
       }
     });
 
+    this.es.addEventListener("poll_expired", (e) => {
+      try {
+        const data = JSON.parse((e as MessageEvent).data);
+        if (data.poll_id) {
+          usePollStore.getState().removePoll(data.poll_id);
+        }
+      } catch {
+        /* ignore */
+      }
+    });
+
+    this.es.addEventListener("poll_reminder", (e) => {
+      try {
+        const data = JSON.parse((e as MessageEvent).data);
+        if (data.poll_id) {
+          const polls = usePollStore.getState().activePolls;
+          const poll = polls.find((p) => p.poll_id === data.poll_id);
+          if (
+            poll &&
+            typeof window !== "undefined" &&
+            "Notification" in window &&
+            Notification.permission === "granted"
+          ) {
+            new Notification("Erestor", {
+              body: data.text || poll.question,
+              tag: `reminder_${data.poll_id}`,
+            });
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    });
+
     this.es.addEventListener("heartbeat", () => {
       this.retryDelay = 3000;
     });
