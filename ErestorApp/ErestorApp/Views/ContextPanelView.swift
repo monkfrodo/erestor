@@ -5,28 +5,15 @@ struct ContextPanelView: View {
     @ObservedObject var chatService: ChatService
     var onClose: (() -> Void)? = nil
 
-    @State private var activePoll: ActivePoll?
-    @State private var activeGate: ActiveGate?
-    private let pushObserver = NotificationCenter.default.publisher(for: .erestorPushMessageReceived)
-
-    struct ActivePoll {
-        let type: PollType
-        let question: String
-    }
-
-    struct ActiveGate {
-        let text: String
-        let severity: GateSeverity
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             // Header
             header
 
+            // 1. CONTEXT SECTION (top) -- scrollable with tasks and alerts
             ScrollView {
                 VStack(spacing: 0) {
-                    // Current event card (with timer inside, matching prototype)
+                    // Current event card (with timer inside)
                     if let event = chatService.context?.currentEvent {
                         EventCardView(
                             title: event.title,
@@ -45,43 +32,15 @@ struct ContextPanelView: View {
                             .padding(.horizontal, 14)
                             .padding(.bottom, 12)
                         }
-                    } else if chatService.context?.timer != nil {
+                    } else if let timer = chatService.context?.timer {
                         // Timer without event
-                        if let timer = chatService.context?.timer {
-                            TimerChipView(
-                                elapsed: formatMinutes(timer.minutes),
-                                label: timer.desc,
-                                onStop: { stopTimer() }
-                            )
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                        }
-                    }
-
-                    // Dynamic cards (poll / gate) — appear right after event
-                    if let poll = activePoll {
-                        PollCardView(type: poll.type, question: poll.question) { response in
-                            Task {
-                                await chatService.sendMessageStreaming("energia: \(response)")
-                            }
-                            activePoll = nil
-                        }
-                    }
-
-                    if let gate = activeGate {
-                        GateAlertView(
-                            text: gate.text,
-                            severity: gate.severity,
-                            actions: [
-                                GateAlertAction(label: "trocar timer") {
-                                    Task { await chatService.sendMessageStreaming("trocar timer") }
-                                    activeGate = nil
-                                },
-                                GateAlertAction(label: "ignorar") {
-                                    activeGate = nil
-                                }
-                            ]
+                        TimerChipView(
+                            elapsed: formatMinutes(timer.minutes),
+                            label: timer.desc,
+                            onStop: { stopTimer() }
                         )
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
                     }
 
                     // Next event
@@ -103,20 +62,46 @@ struct ContextPanelView: View {
                         )
                     }
 
-                    // P1 Tasks
-                    if let ctx = chatService.context, !ctx.p1Tasks.isEmpty {
+                    // Context/tasks divider
+                    if chatService.context != nil {
                         separator
-                        TaskListView(tasks: ctx.p1Tasks)
+                    }
+
+                    // 2. TASKS SECTION (collapsible)
+                    CollapsibleTasksView(tasks: allTasks)
+
+                    // 3. ALERTS SECTION (temporary -- polls and gates from SSE)
+                    ForEach(chatService.activePolls) { poll in
+                        PollCardView(
+                            type: poll.pollType == "energy" ? .energy : .quality,
+                            question: poll.question
+                        ) { response in
+                            Task {
+                                await respondToPoll(pollId: poll.pollId, value: response)
+                            }
+                            chatService.activePolls.removeAll { $0.pollId == poll.pollId }
+                        }
+                    }
+
+                    ForEach(chatService.activeGates) { gate in
+                        GateAlertView(
+                            text: gate.text,
+                            severity: gate.severity == "red" ? .red : .amber,
+                            actions: [
+                                GateAlertAction(label: "ignorar") {
+                                    chatService.activeGates.removeAll { $0.id == gate.id }
+                                }
+                            ]
+                        )
                     }
                 }
             }
 
-            Spacer(minLength: 0)
-
-            // Chat history (expands upward when messages exist)
+            // 4. CHAT SECTION (always visible, fills remaining space)
             ChatHistoryView(messages: chatService.messages, isStreaming: chatService.isStreaming)
+                .frame(maxHeight: .infinity)
 
-            // Chat input — always at bottom, disabled during streaming
+            // Chat input -- always at bottom, disabled during streaming
             ChatInputView { text in
                 Task {
                     await chatService.sendMessageStreaming(text)
@@ -136,9 +121,17 @@ struct ContextPanelView: View {
         )
         .shadow(color: .black.opacity(0.5), radius: 24, x: 0, y: 16)
         #endif
-        .onReceive(pushObserver) { notification in
-            handlePush(notification)
+    }
+
+    // MARK: - Computed properties
+
+    private var allTasks: [String] {
+        var tasks: [String] = []
+        if let ctx = chatService.context {
+            tasks.append(contentsOf: ctx.p1Tasks)
+            tasks.append(contentsOf: ctx.p2Tasks)
         }
+        return tasks
     }
 
     // MARK: - Header
@@ -176,31 +169,6 @@ struct ContextPanelView: View {
             .fill(DS.border)
             .frame(height: 1)
             .padding(.horizontal, 14)
-    }
-
-    // MARK: - Push event handling
-
-    private func handlePush(_ notification: Notification) {
-        guard let info = notification.userInfo,
-              let eventType = info["eventType"] as? String else { return }
-
-        switch eventType {
-        case "poll_energy":
-            let text = info["text"] as? String ?? "Como ta a energia?"
-            withAnimation { activePoll = ActivePoll(type: .energy, question: text) }
-
-        case "poll_quality":
-            let text = info["text"] as? String ?? "Como foi esse bloco?"
-            withAnimation { activePoll = ActivePoll(type: .quality, question: text) }
-
-        case "gate_inform":
-            let text = info["text"] as? String ?? "Alerta"
-            let sev = (info["severity"] as? String) == "red" ? GateSeverity.red : .amber
-            withAnimation { activeGate = ActiveGate(text: text, severity: sev) }
-
-        default:
-            break
-        }
     }
 
     // MARK: - Helpers
@@ -264,17 +232,29 @@ struct ContextPanelView: View {
 
     private func eventTypeFromTitle(_ title: String) -> EventType {
         let lower = title.lowercased()
-        if lower.contains("descanso") || lower.contains("almoco") || lower.contains("almoço")
+        if lower.contains("descanso") || lower.contains("almoco") || lower.contains("almoco")
             || lower.contains("pausa") || lower.contains("desacelerar") || lower.contains("wind")
-            || lower.contains("café") || lower.contains("cafe") {
+            || lower.contains("cafe") || lower.contains("cafe") {
             return .rest
         }
         if lower.contains("deep") || lower.contains("work") || lower.contains("foco")
-            || lower.contains("reuniao") || lower.contains("reunião") || lower.contains("mentoria")
+            || lower.contains("reuniao") || lower.contains("reuniao") || lower.contains("mentoria")
             || lower.contains("vender") || lower.contains("construir") || lower.contains("entregar") {
             return .work
         }
         return .free
+    }
+
+    private func respondToPoll(pollId: String, value: String) async {
+        guard let url = ErestorConfig.url(for: "\(ErestorConfig.pollsPath)/\(pollId)/respond") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 10
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        ErestorConfig.authorize(&request)
+        let body = ["value": value]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        _ = try? await URLSession.shared.data(for: request)
     }
 
     private func stopTimer() {

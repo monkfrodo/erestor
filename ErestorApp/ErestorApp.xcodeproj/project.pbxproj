@@ -20,6 +20,7 @@
 		10F587C286E5FC17C750370F /* TimerChipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA726871DCF9235C77FC9C2 /* TimerChipView.swift */; };
 		14407A7815BEA5D018E59AC0 /* ChatInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95D84A05DD7C977E0DD5106 /* ChatInputView.swift */; };
 		14A8652CDCA80FF082FEB68E /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CB6436DDC8DE2DDC409F26 /* Color+Hex.swift */; };
+		16771D5A48842FDD386F2C3F /* CollapsibleTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8104487F32A412D8BF0378D /* CollapsibleTasksView.swift */; };
 		1C7F302F6D0C9C9F4472379C /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF6A3BCDB2B8FE40305DA4 /* ChatService.swift */; };
 		22C8CAADAAAAA9B1D620B924 /* PollCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DED315BF82B5065424B760C7 /* PollCardView.swift */; };
 		296A1A6763FA759F01C6ADA4 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A6A396AE8B71CF2FE102BD /* TaskListView.swift */; };
@@ -55,6 +56,7 @@
 		EEB0897591F58238AE99DD63 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CBE77C1C1F6C9A9AE9A81DE /* Message.swift */; };
 		F7FC1ED102775A9E10462D55 /* SSEEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB32B1A47D80076CBD094DA7 /* SSEEvent.swift */; };
 		F9ECC64AF3BC50098110E60A /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A6A396AE8B71CF2FE102BD /* TaskListView.swift */; };
+		FFBB4B784D45C75932CA83D9 /* CollapsibleTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8104487F32A412D8BF0378D /* CollapsibleTasksView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -76,6 +78,7 @@
 		8D0E256906733D375FFE3650 /* ErestorApp-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "ErestorApp-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BAF6A3BCDB2B8FE40305DA4 /* ChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatService.swift; sourceTree = "<group>"; };
 		A7CF7982BA4E26DEEFDFBFA2 /* ChatWebViewVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatWebViewVC.swift; sourceTree = "<group>"; };
+		A8104487F32A412D8BF0378D /* CollapsibleTasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollapsibleTasksView.swift; sourceTree = "<group>"; };
 		A8FB6927863F16D6663132FB /* ChatHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHistoryView.swift; sourceTree = "<group>"; };
 		B06D8F33A486DBEC78AA79D5 /* NextEventView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextEventView.swift; sourceTree = "<group>"; };
 		B12C08A771682A848B7AB049 /* ContextPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextPanelView.swift; sourceTree = "<group>"; };
@@ -150,6 +153,7 @@
 				E95D84A05DD7C977E0DD5106 /* ChatInputView.swift */,
 				3AEB3086F15B7B22CFC28994 /* ChatMessageView.swift */,
 				A7CF7982BA4E26DEEFDFBFA2 /* ChatWebViewVC.swift */,
+				A8104487F32A412D8BF0378D /* CollapsibleTasksView.swift */,
 				B12C08A771682A848B7AB049 /* ContextPanelView.swift */,
 				D13735668283F08864CE8F31 /* DayTimelineView.swift */,
 				4C1EF325B321C9D285D69B3C /* DesignSystem.swift */,
@@ -326,6 +330,7 @@
 				503EEEA88E4A21BFAEB9BBF5 /* ChatInputView.swift in Sources */,
 				D5B420EBB6503372DF7721E3 /* ChatMessageView.swift in Sources */,
 				66CBB98D6A222AC1C0408327 /* ChatService.swift in Sources */,
+				FFBB4B784D45C75932CA83D9 /* CollapsibleTasksView.swift in Sources */,
 				14A8652CDCA80FF082FEB68E /* Color+Hex.swift in Sources */,
 				3A2790185905E51E6E8C9F0F /* ContextPanelView.swift in Sources */,
 				813DD61BD8B79F3BEA6E5B91 /* DayTimelineView.swift in Sources */,
@@ -354,6 +359,7 @@
 				054426D87FBA3D1B6BAD604D /* ChatMessageView.swift in Sources */,
 				1C7F302F6D0C9C9F4472379C /* ChatService.swift in Sources */,
 				52C7AF71265210F649FC9098 /* ChatWebViewVC.swift in Sources */,
+				16771D5A48842FDD386F2C3F /* CollapsibleTasksView.swift in Sources */,
 				E66F0524475D36B073F783D3 /* Color+Hex.swift in Sources */,
 				0AE55DB2632217F57E14E346 /* ContextPanelView.swift in Sources */,
 				33FC924AA85C02F9D61D5BD8 /* DayTimelineView.swift in Sources */,
