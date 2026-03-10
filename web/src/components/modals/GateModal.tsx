@@ -16,7 +16,7 @@ export function GateModal({ gate }: { gate: GateAlert }) {
   const severityColor =
     SEVERITY_COLORS[gate.severity] || DS.amber;
 
-  const tasks = (gate as Record<string, unknown>).tasks as
+  const tasks = (gate as unknown as Record<string, unknown>).tasks as
     | string[]
     | undefined;
 
