@@ -53,7 +53,7 @@
 ### Web (PWA)
 
 - [x] **WEB-01**: Progressive Web App with same panel functionality as native
-- [ ] **WEB-02**: Chat interface with streaming
+- [x] **WEB-02**: Chat interface with streaming
 - [ ] **WEB-03**: Web push notifications
 
 ### Data Migration
@@ -137,7 +137,7 @@
 | MIGR-02 | Phase 3 | Complete |
 | MIGR-03 | Phase 3 | Complete |
 | WEB-01 | Phase 4 | Complete |
-| WEB-02 | Phase 4 | Pending |
+| WEB-02 | Phase 4 | Complete |
 | WEB-03 | Phase 4 | Pending |
 | NOTF-03 | Phase 4 | Pending |
 

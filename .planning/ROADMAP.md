@@ -97,4 +97,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. API Foundation | 2/2 | Complete | 2026-03-10 |
 | 2. macOS Experience | 5/6 | In Progress|  |
 | 3. iOS + Data Migration | 4/5 | In Progress|  |
-| 4. Web PWA | 0/3 | Not started | - |
+| 4. Web PWA | 2/3 | In Progress|  |
