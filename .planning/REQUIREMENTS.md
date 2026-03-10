@@ -47,13 +47,13 @@
 
 - [x] **IOS-01**: Contextual panel adapted for iPhone (event, timer, tasks, chat)
 - [x] **IOS-02**: Full day agenda view with all scheduled blocks
-- [ ] **IOS-03**: Inline energy and block quality polls
+- [x] **IOS-03**: Inline energy and block quality polls
 - [x] **IOS-04**: Push notifications with inline actions (APNs)
 
 ### Web (PWA)
 
 - [x] **WEB-01**: Progressive Web App with same panel functionality as native
-- [ ] **WEB-02**: Chat interface with streaming
+- [x] **WEB-02**: Chat interface with streaming
 - [x] **WEB-03**: Web push notifications
 
 ### Data Migration
@@ -66,7 +66,7 @@
 
 - [x] **NOTF-01**: Native macOS notifications with inline actions (polls, quick responses)
 - [x] **NOTF-02**: iOS push notifications via APNs with inline actions
-- [ ] **NOTF-03**: Web push notifications via Web Push API
+- [x] **NOTF-03**: Web push notifications via Web Push API
 
 ## v2 Requirements
 
@@ -130,16 +130,16 @@
 | NOTF-01 | Phase 2 | Complete |
 | IOS-01 | Phase 3 | Complete |
 | IOS-02 | Phase 3 | Complete |
-| IOS-03 | Phase 6 | Pending |
+| IOS-03 | Phase 6 | Complete |
 | IOS-04 | Phase 3 | Complete |
 | NOTF-02 | Phase 5 | Complete |
 | MIGR-01 | Phase 3 | Complete |
 | MIGR-02 | Phase 3 | Complete |
 | MIGR-03 | Phase 3 | Complete |
 | WEB-01 | Phase 4 | Complete |
-| WEB-02 | Phase 6 | Pending |
+| WEB-02 | Phase 6 | Complete |
 | WEB-03 | Phase 4 | Complete |
-| NOTF-03 | Phase 6 | Pending |
+| NOTF-03 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 36 total

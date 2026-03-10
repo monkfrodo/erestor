@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: iOS + Data Migration** - iOS app with context panel, push notifications, and historical data migration (completed 2026-03-10)
 - [x] **Phase 4: Web PWA** - Progressive web app as browser fallback with same core functionality (completed 2026-03-10)
 - [x] **Phase 5: API Gaps + Swift Path Migration** - Missing /v1/ endpoints + migrate all legacy /api/ paths in Swift clients (completed 2026-03-10)
-- [ ] **Phase 6: Insights + Web Integration Fixes** - Fix insights display on iOS/Web + web push actions + SSE completeness
+- [x] **Phase 6: Insights + Web Integration Fixes** - Fix insights display on iOS/Web + web push actions + SSE completeness (completed 2026-03-10)
 
 ## Phase Details
 
@@ -115,7 +115,10 @@ Plans:
   2. Web InsightsTab field names and shapes match backend response — charts render real data
   3. Web service worker poll response action reaches backend successfully
   4. Web SSE client handles poll_expired (removes stale polls) and poll_reminder events
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [x] 06-01-PLAN.md -- iOS InsightsView decode fix + Web InsightsTab transform + sw.js poll-respond route + SSE handlers
 
 ## Progress
 
@@ -129,4 +132,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. iOS + Data Migration | 5/5 | Complete | 2026-03-10 |
 | 4. Web PWA | 3/3 | Complete | 2026-03-10 |
 | 5. API Gaps + Swift Migration | 1/1 | Complete | 2026-03-10 |
-| 6. Insights + Web Fixes | 0/? | Pending | |
+| 6. Insights + Web Fixes | 1/1 | Complete | 2026-03-10 |
