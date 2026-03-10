@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-03-10T10:44:29Z"
-last_activity: 2026-03-10 -- Plan 02-02 executed (poll CRUD API + synthesis endpoints)
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-03-10T10:53:49Z"
+last_activity: 2026-03-10 -- Plan 02-03 executed (SSE client + native SwiftUI chat with MarkdownUI)
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 4
-  percent: 50
+  completed_plans: 5
+  percent: 62
 ---
 
 # Project State
@@ -26,28 +26,28 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 2 of 4 (macOS Experience)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: Executing
-Last activity: 2026-03-10 -- Plan 02-02 executed (poll CRUD API + synthesis endpoints)
+Last activity: 2026-03-10 -- Plan 02-03 executed (SSE client + native SwiftUI chat with MarkdownUI)
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 62%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 4.5 min
-- Total execution time: 0.3 hours
+- Total plans completed: 5
+- Average duration: 4.6 min
+- Total execution time: 0.4 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-api-foundation | 2/2 | 7 min | 3.5 min |
-| 02-macos-experience | 2/4 | 11 min | 5.5 min |
+| 02-macos-experience | 3/4 | 16 min | 5.3 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3 min), 01-02 (4 min), 02-01 (5 min), 02-02 (6 min)
+- Last 5 plans: 01-01 (3 min), 01-02 (4 min), 02-01 (5 min), 02-02 (6 min), 02-03 (5 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -80,6 +80,11 @@ Recent decisions affecting current work:
 - [02-02]: Claude calls in mockable functions for synthesis/query testing
 - [02-02]: Simple keyword matching for date range parsing (semana, mes, ontem)
 - [02-02]: Gate alerts as poll_type="gate" in poll_responses table
+- [02-03]: Streaming text as plain Text, switch to MarkdownUI on completion (avoids re-parsing per token)
+- [02-03]: SSE reconnect with exponential backoff 3s->30s cap
+- [02-03]: Heartbeat liveness 60s timeout, force reconnect on macOS wake
+- [02-03]: In-place array mutation for streaming message updates
+- [02-03]: Last 20 messages as conversation history per request
 
 ### Pending Todos
 
@@ -92,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T10:44:29Z
-Stopped at: Completed 02-02-PLAN.md
-Resume file: .planning/phases/02-macos-experience/02-03-PLAN.md
+Last session: 2026-03-10T10:53:49Z
+Stopped at: Completed 02-03-PLAN.md
+Resume file: .planning/phases/02-macos-experience/02-04-PLAN.md

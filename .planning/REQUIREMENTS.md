@@ -28,8 +28,8 @@
 
 - [x] **CHAT-01**: Natural language commands to create events, set reminders, ask questions
 - [x] **CHAT-02**: Streaming responses from Claude displayed in real-time
-- [ ] **CHAT-03**: Conversation history persists within session
-- [ ] **CHAT-04**: Chat input always visible at bottom of panel
+- [x] **CHAT-03**: Conversation history persists within session
+- [x] **CHAT-04**: Chat input always visible at bottom of panel
 
 ### Data Collection
 
@@ -119,8 +119,8 @@
 | PANEL-07 | Phase 2 | Complete |
 | CHAT-01 | Phase 2 | Complete |
 | CHAT-02 | Phase 2 | Complete |
-| CHAT-03 | Phase 2 | Pending |
-| CHAT-04 | Phase 2 | Pending |
+| CHAT-03 | Phase 2 | Complete |
+| CHAT-04 | Phase 2 | Complete |
 | DATA-01 | Phase 2 | Complete |
 | DATA-02 | Phase 2 | Complete |
 | DATA-03 | Phase 2 | Complete |
