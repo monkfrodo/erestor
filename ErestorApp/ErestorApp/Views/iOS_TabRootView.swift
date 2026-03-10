@@ -45,12 +45,8 @@ struct iOS_TabRootView: View {
                 }
                 .tag(2)
 
-            // Tab 3: Insights (placeholder)
-            Text("Insights")
-                .font(DS.body(16))
-                .foregroundColor(DS.text)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(DS.bg)
+            // Tab 3: Insights
+            iOS_InsightsView(chatService: chatService)
                 .tabItem {
                     Label("Insights", systemImage: "chart.line.uptrend.xyaxis")
                 }
