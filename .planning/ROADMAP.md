@@ -63,11 +63,13 @@ Plans:
   2. A full day agenda view displays all scheduled blocks on mobile
   3. Energy and block quality polls work inline on iOS, and push notifications with actions arrive via APNs
   4. Historical mood/energy data, memory system data, and log history from the Telegram system are accessible in the new system
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md -- Data migration (memory system tables, idempotent script) + insights API endpoint
+- [ ] 03-02-PLAN.md -- iOS app foundation (TabView + Painel tab + Chat + scenePhase SSE lifecycle)
+- [ ] 03-03-PLAN.md -- iOS Agenda tab (vertical timeline, swipe, detail sheet) + Insights tab (Swift Charts)
+- [ ] 03-04-PLAN.md -- iOS poll/gate modal sheets + notification categories + backend APNs integration
 
 ### Phase 4: Web PWA
 **Goal**: Kevin can access Erestor from any browser as a fallback when not on an Apple device
@@ -91,5 +93,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. API Foundation | 2/2 | Complete | 2026-03-10 |
 | 2. macOS Experience | 5/6 | In Progress|  |
-| 3. iOS + Data Migration | 0/2 | Not started | - |
+| 3. iOS + Data Migration | 0/4 | Not started | - |
 | 4. Web PWA | 0/1 | Not started | - |
