@@ -6,6 +6,13 @@ enum ErestorConfig {
     static let apiBaseURL = "https://erestor-api.kevineger.com.br"
     static let apiToken = "gzC3a3cvg15-IgU3lAu0YuJeHCxc87EOTZJ4sikSuMU"
 
+    // MARK: - v1 API Paths
+
+    static let eventsStreamPath = "/v1/events/stream"
+    static let chatStreamPath = "/v1/chat/stream"
+    static let pollsPath = "/v1/polls"
+    static let synthesisPath = "/v1/synthesis"
+
     /// Apply auth header to a URLRequest
     static func authorize(_ request: inout URLRequest) {
         request.setValue("Bearer \(apiToken)", forHTTPHeaderField: "Authorization")

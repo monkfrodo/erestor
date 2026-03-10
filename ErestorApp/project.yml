@@ -6,6 +6,14 @@ options:
     iOS: "17.0"
   xcodeVersion: "16.0"
 
+packages:
+  MarkdownUI:
+    url: https://github.com/gonzalezreal/swift-markdown-ui
+    from: "2.4.0"
+  HighlightSwift:
+    url: https://github.com/appstefan/HighlightSwift
+    from: "1.1.0"
+
 targets:
   ErestorApp:
     type: application
@@ -16,6 +24,8 @@ targets:
           - iOS
     dependencies:
       - sdk: Carbon.framework
+      - package: MarkdownUI
+      - package: HighlightSwift
     info:
       path: ErestorApp/Info.plist
       properties:

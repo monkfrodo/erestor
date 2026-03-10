@@ -3,45 +3,124 @@ import Foundation
 struct ChatMessage: Identifiable, Equatable {
     let id = UUID()
     let role: Role
-    let text: String
+    var text: String
     let timestamp: String
+    var isStreaming: Bool = false
 
     enum Role {
         case user
         case assistant
     }
+
+    /// Convenience init for a streaming assistant message (starts with empty text)
+    static func streaming(timestamp: String) -> ChatMessage {
+        ChatMessage(role: .assistant, text: "", timestamp: timestamp, isStreaming: true)
+    }
 }
 
+/// Matches the actual /api/context response from the DO server
 struct ContextSummary: Codable {
-    let snapshot: String?
-    let gcal: String?
-    let timer: TimerInfo?
-    let timestamp: String?
-    let p1Tasks: [String]?
-    let nextEvent: NextEvent?
-    let currentEvent: NextEvent?
-    let briefing: String?
-    let todayEvents: [NextEvent]?
+    let now: String?
+    let dayPhase: String?          // pre_day, morning, afternoon, evening, night
+    let hora: Int?
+    let activity: String?          // free_window, working, resting, etc.
+    let timerType: String?
+    let timerDesc: String?
+    let timerElapsedMins: Int?
+    let currentEvent: GCalEvent?
+    let isRestEvent: Bool?
+    let nextEvent: GCalEvent?
+    let minsToNext: Int?
+    let minsSinceLastEnd: Int?
+    let todayEvents: [GCalEvent]?
+    let activeP1s: [TaskItem]?
+    let activeP2s: [TaskItem]?
+    let energyLevel: Int?
 
-    struct TimerInfo: Codable {
+    enum CodingKeys: String, CodingKey {
+        case now
+        case dayPhase = "day_phase"
+        case hora, activity
+        case timerType = "timer_type"
+        case timerDesc = "timer_desc"
+        case timerElapsedMins = "timer_elapsed_mins"
+        case currentEvent = "current_event"
+        case isRestEvent = "is_rest_event"
+        case nextEvent = "next_event"
+        case minsToNext = "mins_to_next"
+        case minsSinceLastEnd = "mins_since_last_end"
+        case todayEvents = "today_events"
+        case activeP1s = "active_p1s"
+        case activeP2s = "active_p2s"
+        case energyLevel = "energy_level"
+    }
+
+    // MARK: - Computed helpers for views
+
+    var timer: TimerInfo? {
+        guard let type = timerType, let desc = timerDesc else { return nil }
+        return TimerInfo(type: type, desc: desc, minutes: timerElapsedMins ?? 0)
+    }
+
+    var p1Tasks: [String] {
+        activeP1s?.map { $0.title } ?? []
+    }
+
+    var p2Tasks: [String] {
+        activeP2s?.map { $0.title } ?? []
+    }
+
+    struct TimerInfo {
         let type: String
         let desc: String
         let minutes: Int
     }
+}
 
-    struct NextEvent: Codable {
-        let title: String
-        let start: String
-        let end: String
+/// Google Calendar event (matches GCal API response)
+struct GCalEvent: Codable {
+    let summary: String?
+    let start: GCalDateTime?
+    let end: GCalDateTime?
+    let organizer: GCalOrganizer?
+
+    struct GCalDateTime: Codable {
+        let dateTime: String?
+        let timeZone: String?
     }
 
-    enum CodingKeys: String, CodingKey {
-        case snapshot, gcal, timer, timestamp, briefing
-        case p1Tasks = "p1_tasks"
-        case nextEvent = "next_event"
-        case currentEvent = "current_event"
-        case todayEvents = "today_events"
+    struct GCalOrganizer: Codable {
+        let displayName: String?
     }
+
+    // Helpers
+    var title: String { summary ?? "Sem título" }
+
+    var startTime: String {
+        guard let dt = start?.dateTime else { return "" }
+        return extractTime(from: dt)
+    }
+
+    var endTime: String {
+        guard let dt = end?.dateTime else { return "" }
+        return extractTime(from: dt)
+    }
+
+    var calendarName: String {
+        organizer?.displayName ?? ""
+    }
+
+    private func extractTime(from iso: String) -> String {
+        // "2026-03-09T21:30:00-03:00" → "21:30"
+        guard let tIndex = iso.firstIndex(of: "T") else { return "" }
+        let afterT = iso[iso.index(after: tIndex)...]
+        return String(afterT.prefix(5))
+    }
+}
+
+/// Notion task item
+struct TaskItem: Codable {
+    let title: String
 }
 
 struct PushEvent: Codable {
