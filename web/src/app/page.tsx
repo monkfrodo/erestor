@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sseManager } from "@/services/sse";
+import { requestPushPermission, wasPushPermissionRequested } from "@/services/push";
 import { MobileLayout, TabId } from "@/components/layout/MobileLayout";
 import {
   DesktopLayout,
@@ -35,9 +36,30 @@ export default function Home() {
   const activePolls = usePollStore((s) => s.activePolls);
   const activeGates = usePollStore((s) => s.activeGates);
 
+  const pushRequested = useRef(false);
+
   useEffect(() => {
     sseManager.connect();
     return () => sseManager.disconnect();
+  }, []);
+
+  // Request push permission after first user interaction (not on load)
+  useEffect(() => {
+    if (pushRequested.current) return;
+    if (wasPushPermissionRequested()) {
+      pushRequested.current = true;
+      return;
+    }
+
+    const handler = () => {
+      if (pushRequested.current) return;
+      pushRequested.current = true;
+      requestPushPermission().catch(() => {});
+      document.removeEventListener("click", handler);
+    };
+
+    document.addEventListener("click", handler, { once: true });
+    return () => document.removeEventListener("click", handler);
   }, []);
 
   const currentPoll = activePolls.length > 0 ? activePolls[0] : null;
