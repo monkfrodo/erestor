@@ -9,6 +9,29 @@ interface InsightsData {
   timers: { project: string; hours: number }[];
 }
 
+interface BackendInsights {
+  energy_trend: { date: string; level: string }[];
+  quality_distribution: Record<string, number>;
+  timer_hours: { date: string; hours: number }[];
+}
+
+function transformInsights(raw: BackendInsights): InsightsData {
+  return {
+    energy: raw.energy_trend.map((e) => ({
+      label: e.date.slice(5), // "2026-03-01" -> "03-01"
+      value: parseInt(e.level) || 3, // "4-boa" -> 4
+    })),
+    quality: Object.entries(raw.quality_distribution).map(([label, count]) => ({
+      label,
+      count,
+    })),
+    timers: raw.timer_hours.map((t) => ({
+      project: t.date.slice(5), // "03-01" as label
+      hours: t.hours,
+    })),
+  };
+}
+
 function EnergyChart({ data }: { data: InsightsData["energy"] }) {
   if (!data || data.length === 0) {
     return <EmptySection label="Sem dados de energia" />;
@@ -193,9 +216,9 @@ export function InsightsTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiFetch<InsightsData>("/v1/insights/chart-data").then((res) => {
+    apiFetch<BackendInsights>("/v1/insights/chart-data").then((res) => {
       if (res.ok && res.data) {
-        setData(res.data);
+        setData(transformInsights(res.data));
       }
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -225,7 +248,7 @@ export function InsightsTab() {
         <QualityChart data={data?.quality || []} />
       </InsightCard>
 
-      <InsightCard title="Tempo por Projeto">
+      <InsightCard title="Horas por Dia">
         <TimerChart data={data?.timers || []} />
       </InsightCard>
     </div>
