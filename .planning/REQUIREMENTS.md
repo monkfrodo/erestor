@@ -45,7 +45,7 @@
 
 ### Mobile (iOS)
 
-- [ ] **IOS-01**: Contextual panel adapted for iPhone (event, timer, tasks, chat)
+- [x] **IOS-01**: Contextual panel adapted for iPhone (event, timer, tasks, chat)
 - [ ] **IOS-02**: Full day agenda view with all scheduled blocks
 - [ ] **IOS-03**: Inline energy and block quality polls
 - [ ] **IOS-04**: Push notifications with inline actions (APNs)
@@ -128,7 +128,7 @@
 | SYNT-01 | Phase 2 | Complete |
 | SYNT-02 | Phase 2 | Complete |
 | NOTF-01 | Phase 2 | Complete |
-| IOS-01 | Phase 3 | Pending |
+| IOS-01 | Phase 3 | Complete |
 | IOS-02 | Phase 3 | Pending |
 | IOS-03 | Phase 3 | Pending |
 | IOS-04 | Phase 3 | Pending |

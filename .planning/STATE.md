@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-03-10T15:46:16Z"
-last_activity: 2026-03-10 -- Plan 03-01 executed (data migration + insights API)
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-03-10T15:46:30Z"
+last_activity: 2026-03-10 -- Plan 03-02 executed (iOS TabView shell with Painel, Chat, Agenda, Insights)
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 9
-  percent: 72
+  completed_plans: 10
+  percent: 80
 ---
 
 # Project State
@@ -26,18 +26,18 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 3 of 4 (iOS Data Migration)
-Plan: 1 of 2 in current phase
+Plan: 2 of 2 in current phase
 Status: Executing
-Last activity: 2026-03-10 -- Plan 03-01 executed (data migration + insights API)
+Last activity: 2026-03-10 -- Plan 03-02 executed (iOS TabView shell with Painel, Chat, Agenda, Insights)
 
-Progress: [███████░░░] 72%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 4.5 min
-- Total execution time: 0.6 hours
+- Total plans completed: 9
+- Average duration: 4.4 min
+- Total execution time: 0.7 hours
 
 **By Phase:**
 
@@ -45,10 +45,10 @@ Progress: [███████░░░] 72%
 |-------|-------|-------|----------|
 | 01-api-foundation | 2/2 | 7 min | 3.5 min |
 | 02-macos-experience | 5/5 | 25 min | 5.0 min |
-| 03-ios-data-migration | 1/2 | 4 min | 4.0 min |
+| 03-ios-data-migration | 2/2 | 8 min | 4.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (6 min), 02-03 (5 min), 02-04 (5 min), 02-05 (4 min), 03-01 (4 min)
+- Last 5 plans: 02-03 (5 min), 02-04 (5 min), 02-05 (4 min), 03-01 (4 min), 03-02 (4 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -98,6 +98,9 @@ Recent decisions affecting current work:
 - [03-01]: Optional dir parameters in migrate functions for testability with tmp_path
 - [03-01]: Content type derived from filename stem (behavior-model.json -> behavior_model)
 - [03-01]: Timer data stored as minutes, converted to hours in API response
+- [03-02]: Added stopEventStream() to ChatService for background SSE disconnection
+- [03-02]: Guarded BubbleWindowController reference with #if os(macOS) for iOS compatibility
+- [03-02]: Poll/gate sheets use presentationDetents for iOS-native bottom sheet behavior
 
 ### Pending Todos
 
@@ -110,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T15:46:16Z
-Stopped at: Completed 03-01-PLAN.md
-Resume file: .planning/phases/03-ios-data-migration/03-01-SUMMARY.md
+Last session: 2026-03-10T15:46:30Z
+Stopped at: Completed 03-02-PLAN.md
+Resume file: .planning/phases/03-ios-data-migration/03-02-SUMMARY.md
