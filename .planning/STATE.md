@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-04-PLAN.md
-last_updated: "2026-03-10T15:58:41Z"
-last_activity: 2026-03-10 -- Plan 03-04 executed (iOS poll/gate sheets and APNs push integration)
+stopped_at: Completed 03-05-PLAN.md
+last_updated: "2026-03-10T17:02:28Z"
+last_activity: 2026-03-10 -- Plan 03-05 executed (gap closure - iOS build verified, APNs commits confirmed)
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 14
-  percent: 90
+  total_plans: 13
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -26,17 +26,17 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 3 of 4 (iOS Data Migration)
-Plan: 4 of 4 in current phase
+Plan: 5 of 5 in current phase (phase complete)
 Status: Executing
-Last activity: 2026-03-10 -- Plan 03-04 executed (iOS poll/gate sheets and APNs push integration)
+Last activity: 2026-03-10 -- Plan 03-05 executed (gap closure - iOS build verified, APNs commits confirmed)
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 4.7 min
+- Total plans completed: 12
+- Average duration: 4.5 min
 - Total execution time: 0.9 hours
 
 **By Phase:**
@@ -45,10 +45,10 @@ Progress: [█████████░] 90%
 |-------|-------|-------|----------|
 | 01-api-foundation | 2/2 | 7 min | 3.5 min |
 | 02-macos-experience | 5/5 | 25 min | 5.0 min |
-| 03-ios-data-migration | 4/4 | 22 min | 5.5 min |
+| 03-ios-data-migration | 5/5 | 24 min | 4.8 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (4 min), 03-02 (4 min), 03-03 (7 min), 03-04 (7 min)
+- Last 5 plans: 03-01 (4 min), 03-02 (4 min), 03-03 (7 min), 03-04 (7 min), 03-05 (2 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -109,6 +109,7 @@ Recent decisions affecting current work:
 - [03-04]: APNs send_push called via asyncio.to_thread to avoid blocking event loop
 - [03-04]: Always send APNs to iOS regardless of macOS presence (no deduplication)
 - [03-04]: Separate iOS sheet view files instead of inline in TabRootView
+- [03-05]: iPhone 17 Pro used as simulator destination (available with iOS 26.2 SDK)
 
 ### Pending Todos
 
@@ -121,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T15:58:41Z
-Stopped at: Completed 03-04-PLAN.md
-Resume file: .planning/phases/03-ios-data-migration/03-04-SUMMARY.md
+Last session: 2026-03-10T17:02:28Z
+Stopped at: Completed 03-05-PLAN.md
+Resume file: .planning/phases/03-ios-data-migration/03-05-SUMMARY.md
