@@ -12,10 +12,12 @@ Erestor rebuilds the interface layer of Kevin's personal intelligence assistant.
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: API Foundation** - FastAPI gateway wrapping existing Python services with REST + SSE endpoints
-- [ ] **Phase 2: macOS Experience** - Full contextual panel with chat, data collection, synthesis, and native notifications on macOS
-- [ ] **Phase 3: iOS + Data Migration** - iOS app with context panel, push notifications, and historical data migration
+- [x] **Phase 1: API Foundation** - FastAPI gateway wrapping existing Python services with REST + SSE endpoints (completed 2026-03-10)
+- [x] **Phase 2: macOS Experience** - Full contextual panel with chat, data collection, synthesis, and native notifications on macOS (completed 2026-03-10)
+- [x] **Phase 3: iOS + Data Migration** - iOS app with context panel, push notifications, and historical data migration (completed 2026-03-10)
 - [x] **Phase 4: Web PWA** - Progressive web app as browser fallback with same core functionality (completed 2026-03-10)
+- [ ] **Phase 5: API Gaps + Swift Path Migration** - Missing /v1/ endpoints + migrate all legacy /api/ paths in Swift clients
+- [ ] **Phase 6: Insights + Web Integration Fixes** - Fix insights display on iOS/Web + web push actions + SSE completeness
 
 ## Phase Details
 
@@ -52,7 +54,7 @@ Plans:
 - [x] 02-03-PLAN.md -- Swift SSE client, MarkdownUI chat, and token streaming
 - [x] 02-04-PLAN.md -- Panel layout restructure, collapsible tasks, poll/gate card updates
 - [x] 02-05-PLAN.md -- macOS notifications for polls/gates + backend poll scheduling
-- [ ] 02-06-PLAN.md -- Full macOS experience verification checkpoint
+- [x] 02-06-PLAN.md -- Full macOS experience verification checkpoint
 
 ### Phase 3: iOS + Data Migration
 **Goal**: Kevin has mobile access to Erestor on iPhone and all historical data from the Telegram era is preserved in the new system
@@ -70,7 +72,7 @@ Plans:
 - [x] 03-02-PLAN.md -- iOS app foundation (TabView + Painel tab + Chat + scenePhase SSE lifecycle)
 - [x] 03-03-PLAN.md -- iOS Agenda tab (vertical timeline, swipe, detail sheet) + Insights tab (Swift Charts)
 - [x] 03-04-PLAN.md -- iOS poll/gate modal sheets + notification categories + backend APNs integration
-- [ ] 03-05-PLAN.md -- Gap closure: verify iOS build + confirm APNs commit state
+- [x] 03-05-PLAN.md -- Gap closure: verify iOS build + confirm APNs commit state
 
 ### Phase 4: Web PWA
 **Goal**: Kevin can access Erestor from any browser as a fallback when not on an Apple device
@@ -83,18 +85,45 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md -- Next.js PWA scaffold, design system, stores, SSE service, and Panel tab
-- [ ] 04-02-PLAN.md -- Chat tab with streaming markdown + Agenda and Insights tabs
-- [ ] 04-03-PLAN.md -- Poll/gate modals + web push notifications (frontend + backend)
+- [x] 04-01-PLAN.md -- Next.js PWA scaffold, design system, stores, SSE service, and Panel tab
+- [x] 04-02-PLAN.md -- Chat tab with streaming markdown + Agenda and Insights tabs
+- [x] 04-03-PLAN.md -- Poll/gate modals + web push notifications (frontend + backend)
+
+### Phase 5: API Gaps + Swift Path Migration
+**Goal**: All Swift client paths use correct /v1/ endpoints, with missing backend endpoints created
+**Depends on**: Phase 1, Phase 2, Phase 3
+**Requirements**: PANEL-03, CHAT-03, NOTF-02
+**Gap Closure:** Closes gaps from v1.0 audit — legacy /api/ paths, missing endpoints
+**Success Criteria** (what must be TRUE):
+  1. POST /v1/timer/stop exists and stops the active timer
+  2. GET /v1/history returns recent conversation history
+  3. POST /v1/device/register accepts iOS device tokens for APNs
+  4. All Swift /api/ path references are replaced with /v1/ equivalents (zero legacy paths remain)
+  5. Timer stop button, chat history load, and iOS push registration work end-to-end
+**Plans**: TBD
+
+### Phase 6: Insights + Web Integration Fixes
+**Goal**: Insights charts render correctly on iOS and Web, web push actions work, web SSE handles all event types
+**Depends on**: Phase 1, Phase 3, Phase 4
+**Requirements**: IOS-03, WEB-02, NOTF-03
+**Gap Closure:** Closes gaps from v1.0 audit — decode mismatches, missing handlers
+**Success Criteria** (what must be TRUE):
+  1. iOS InsightsView correctly unwraps ApiResponse.data and displays energy/quality/timer charts
+  2. Web InsightsTab field names and shapes match backend response — charts render real data
+  3. Web service worker poll response action reaches backend successfully
+  4. Web SSE client handles poll_expired (removes stale polls) and poll_reminder events
+**Plans**: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. API Foundation | 2/2 | Complete | 2026-03-10 |
-| 2. macOS Experience | 5/6 | In Progress|  |
-| 3. iOS + Data Migration | 4/5 | In Progress|  |
-| 4. Web PWA | 3/3 | Complete   | 2026-03-10 |
+| 2. macOS Experience | 6/6 | Complete | 2026-03-10 |
+| 3. iOS + Data Migration | 5/5 | Complete | 2026-03-10 |
+| 4. Web PWA | 3/3 | Complete | 2026-03-10 |
+| 5. API Gaps + Swift Migration | 0/? | Pending | |
+| 6. Insights + Web Fixes | 0/? | Pending | |
