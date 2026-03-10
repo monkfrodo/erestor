@@ -1,6 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import Combine
+import UserNotifications
 
 struct iOS_TabRootView: View {
     @ObservedObject var chatService: ChatService
@@ -37,12 +38,8 @@ struct iOS_TabRootView: View {
             }
             .tag(1)
 
-            // Tab 2: Agenda (placeholder)
-            Text("Agenda")
-                .font(DS.body(16))
-                .foregroundColor(DS.text)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(DS.bg)
+            // Tab 2: Agenda
+            iOS_AgendaView(chatService: chatService)
                 .tabItem {
                     Label("Agenda", systemImage: "calendar")
                 }
@@ -63,13 +60,17 @@ struct iOS_TabRootView: View {
         .preferredColorScheme(.dark)
         .sheet(item: $activePoll) { poll in
             iOS_PollSheetView(poll: poll) { response in
-                Task {
-                    await respondToPoll(pollId: poll.pollId, value: response)
+                if response == "remind_10" {
+                    scheduleReminder(for: poll)
+                } else {
+                    Task {
+                        await respondToPoll(pollId: poll.pollId, value: response)
+                    }
                 }
                 chatService.activePolls.removeAll { $0.pollId == poll.pollId }
                 activePoll = nil
             }
-            .presentationDetents([.fraction(0.35)])
+            .presentationDetents([.fraction(0.4)])
         }
         .sheet(item: $activeGate) { gate in
             iOS_GateSheetView(gate: gate) {
@@ -102,6 +103,29 @@ struct iOS_TabRootView: View {
         }
     }
 
+    // MARK: - Remind in 10min
+
+    private func scheduleReminder(for poll: PollSSEEvent) {
+        let content = UNMutableNotificationContent()
+        content.title = "Erestor"
+        content.body = poll.question
+        content.sound = .default
+        content.categoryIdentifier = poll.pollType == "energy" ? "POLL_ENERGY" : "POLL_QUALITY"
+        content.userInfo = ["poll_id": poll.pollId, "poll_type": poll.pollType]
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 600, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "\(poll.pollId)_reminder",
+            content: content,
+            trigger: trigger
+        )
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error {
+                NSLog("[Erestor-iOS] Reminder schedule failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
     // MARK: - Poll response
 
     private func respondToPoll(pollId: String, value: String) async {
@@ -114,93 +138,6 @@ struct iOS_TabRootView: View {
         let body = ["value": value]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         _ = try? await URLSession.shared.data(for: request)
-    }
-}
-
-// MARK: - Poll Sheet (placeholder)
-
-struct iOS_PollSheetView: View {
-    let poll: PollSSEEvent
-    let onResponse: (String) -> Void
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Text(poll.question)
-                .font(DS.body(15, weight: .medium))
-                .foregroundColor(DS.bright)
-                .multilineTextAlignment(.center)
-                .padding(.top, 20)
-
-            ForEach(poll.options, id: \.self) { option in
-                Button(action: { onResponse(option) }) {
-                    Text(option)
-                        .font(DS.body(14))
-                        .foregroundColor(DS.text)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(DS.s2)
-                        .cornerRadius(10)
-                }
-                .buttonStyle(.plain)
-            }
-
-            Spacer()
-        }
-        .padding(.horizontal, 20)
-        .background(DS.surface)
-    }
-}
-
-// MARK: - Gate Sheet (placeholder)
-
-struct iOS_GateSheetView: View {
-    let gate: GateSSEEvent
-    let onDismiss: () -> Void
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: gate.severity == "red" ? "exclamationmark.triangle.fill" : "exclamationmark.circle.fill")
-                .font(.system(size: 32))
-                .foregroundColor(gate.severity == "red" ? DS.red : DS.amber)
-                .padding(.top, 20)
-
-            Text(gate.text)
-                .font(DS.body(15, weight: .medium))
-                .foregroundColor(DS.bright)
-                .multilineTextAlignment(.center)
-
-            if let tasks = gate.tasks, !tasks.isEmpty {
-                VStack(alignment: .leading, spacing: 6) {
-                    ForEach(tasks, id: \.self) { task in
-                        HStack(spacing: 8) {
-                            Circle()
-                                .fill(DS.red)
-                                .frame(width: 4, height: 4)
-                            Text(task)
-                                .font(DS.body(12))
-                                .foregroundColor(DS.text)
-                        }
-                    }
-                }
-                .padding(.horizontal, 16)
-            }
-
-            Button(action: onDismiss) {
-                Text("Entendi")
-                    .font(DS.body(14, weight: .medium))
-                    .foregroundColor(DS.bright)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(DS.muted)
-                    .cornerRadius(10)
-            }
-            .buttonStyle(.plain)
-            .padding(.top, 8)
-
-            Spacer()
-        }
-        .padding(.horizontal, 20)
-        .background(DS.surface)
     }
 }
 #endif
