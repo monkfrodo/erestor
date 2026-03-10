@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md -- FastAPI app setup with auth, schemas, status and context endpoints
+- [x] 01-01-PLAN.md -- FastAPI app setup with auth, schemas, status and context endpoints
 - [ ] 01-02-PLAN.md -- Chat streaming SSE and calendar read/write endpoints
 
 ### Phase 2: macOS Experience
@@ -86,7 +86,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. API Foundation | 0/2 | Not started | - |
+| 1. API Foundation | 1/2 | In progress | - |
 | 2. macOS Experience | 0/3 | Not started | - |
 | 3. iOS + Data Migration | 0/2 | Not started | - |
 | 4. Web PWA | 0/1 | Not started | - |

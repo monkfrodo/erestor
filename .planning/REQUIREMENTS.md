@@ -7,12 +7,12 @@
 
 ### Backend API
 
-- [ ] **API-01**: FastAPI gateway wrapping existing Python services with REST + SSE endpoints
+- [x] **API-01**: FastAPI gateway wrapping existing Python services with REST + SSE endpoints
 - [ ] **API-02**: Chat streaming endpoint using Claude API via SSE
-- [ ] **API-03**: Context endpoint returning current event, active timer, tasks, and next event in real-time
+- [x] **API-03**: Context endpoint returning current event, active timer, tasks, and next event in real-time
 - [ ] **API-04**: Calendar read endpoint returning day agenda from Google Calendar
 - [ ] **API-05**: Calendar write endpoint creating events via natural language parsed by Claude
-- [ ] **API-06**: Core logic extracted from Telegram bot handlers into clean reusable functions
+- [x] **API-06**: Core logic extracted from Telegram bot handlers into clean reusable functions
 
 ### Contextual Panel (macOS)
 
@@ -104,12 +104,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| API-01 | Phase 1 | Pending |
+| API-01 | Phase 1 | Complete |
 | API-02 | Phase 1 | Pending |
-| API-03 | Phase 1 | Pending |
+| API-03 | Phase 1 | Complete |
 | API-04 | Phase 1 | Pending |
 | API-05 | Phase 1 | Pending |
-| API-06 | Phase 1 | Pending |
+| API-06 | Phase 1 | Complete |
 | PANEL-01 | Phase 2 | Pending |
 | PANEL-02 | Phase 2 | Pending |
 | PANEL-03 | Phase 2 | Pending |
@@ -148,4 +148,4 @@
 
 ---
 *Requirements defined: 2026-03-09*
-*Last updated: 2026-03-09 after roadmap creation*
+*Last updated: 2026-03-10 after 01-01 plan execution*
