@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: macOS Experience** - Full contextual panel with chat, data collection, synthesis, and native notifications on macOS (completed 2026-03-10)
 - [x] **Phase 3: iOS + Data Migration** - iOS app with context panel, push notifications, and historical data migration (completed 2026-03-10)
 - [x] **Phase 4: Web PWA** - Progressive web app as browser fallback with same core functionality (completed 2026-03-10)
-- [ ] **Phase 5: API Gaps + Swift Path Migration** - Missing /v1/ endpoints + migrate all legacy /api/ paths in Swift clients
+- [x] **Phase 5: API Gaps + Swift Path Migration** - Missing /v1/ endpoints + migrate all legacy /api/ paths in Swift clients (completed 2026-03-10)
 - [ ] **Phase 6: Insights + Web Integration Fixes** - Fix insights display on iOS/Web + web push actions + SSE completeness
 
 ## Phase Details
@@ -100,7 +100,10 @@ Plans:
   3. POST /v1/device/register accepts iOS device tokens for APNs
   4. All Swift /api/ path references are replaced with /v1/ equivalents (zero legacy paths remain)
   5. Timer stop button, chat history load, and iOS push registration work end-to-end
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [x] 05-01-PLAN.md -- Backend endpoints (timer/stop, history, device/register) + Swift /api/ to /v1/ migration
 
 ### Phase 6: Insights + Web Integration Fixes
 **Goal**: Insights charts render correctly on iOS and Web, web push actions work, web SSE handles all event types
@@ -125,5 +128,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. macOS Experience | 6/6 | Complete | 2026-03-10 |
 | 3. iOS + Data Migration | 5/5 | Complete | 2026-03-10 |
 | 4. Web PWA | 3/3 | Complete | 2026-03-10 |
-| 5. API Gaps + Swift Migration | 0/? | Pending | |
+| 5. API Gaps + Swift Migration | 1/1 | Complete | 2026-03-10 |
 | 6. Insights + Web Fixes | 0/? | Pending | |
