@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-03-PLAN.md (ALL PLANS COMPLETE)
-last_updated: "2026-03-10T18:24:19.829Z"
-last_activity: 2026-03-10 -- Plan 04-03 executed (Poll/gate modals + web push notifications)
+stopped_at: Completed 06-01-PLAN.md (ALL PLANS COMPLETE)
+last_updated: "2026-03-10T19:33:00Z"
+last_activity: 2026-03-10 -- Plan 06-01 executed (Insights data fixes + web SSE handlers)
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 16
-  completed_plans: 16
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 18
+  completed_plans: 18
   percent: 100
 ---
 
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Surface the right context at the right moment so Kevin can make better decisions about time and energy.
-**Current focus:** Phase 4: Web PWA
+**Current focus:** Phase 6: Insights + Web Fixes (COMPLETE)
 
 ## Current Position
 
-Phase: 4 of 4 (Web PWA)
-Plan: 3 of 3 in current phase
-Status: Phase Complete
-Last activity: 2026-03-10 -- Plan 04-03 executed (Poll/gate modals + web push notifications)
+Phase: 6 of 6 (Insights + Web Fixes)
+Plan: 1 of 1 in current phase (COMPLETE)
+Status: All Phases Complete
+Last activity: 2026-03-10 -- Plan 06-01 executed (Insights data fixes + web SSE handlers)
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
-- Average duration: 4.6 min
-- Total execution time: 1.2 hours
+- Total plans completed: 18
+- Average duration: 4.4 min
+- Total execution time: 1.33 hours
 
 **By Phase:**
 
@@ -47,9 +47,11 @@ Progress: [██████████] 100%
 | 02-macos-experience | 5/5 | 25 min | 5.0 min |
 | 03-ios-data-migration | 5/5 | 24 min | 4.8 min |
 | 04-web-pwa | 3/3 | 18 min | 6.0 min |
+| 05-api-gaps-swift-migration | 1/1 | 4 min | 4.0 min |
+| 06-insights-web-fixes | 1/1 | 4 min | 4.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-04 (7 min), 03-05 (2 min), 04-01 (7 min), 04-02 (4 min), 04-03 (7 min)
+- Last 5 plans: 04-01 (7 min), 04-02 (4 min), 04-03 (7 min), 05-01 (4 min), 06-01 (4 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -124,6 +126,12 @@ Recent decisions affecting current work:
 - [04-03]: verify_token updated with query param fallback for EventSource SSE compatibility
 - [04-03]: Web push sent alongside APNs (no deduplication per user decision)
 - [04-03]: Stale subscriptions auto-cleaned on 410 Gone response from push service
+- [05-01]: Used `pattern` instead of deprecated `regex` param in FastAPI Query for history endpoint
+- [05-01]: Legacy push/respond path updated to /v1/ for consistency (dead code, no backend endpoint)
+- [06-01]: EnergyPoint.level kept as String with numericLevel computed property (no lossy conversion)
+- [06-01]: transformInsights() as standalone function, not hook (pure data transform)
+- [06-01]: poll_reminder uses browser Notification API (matches iOS native notification pattern)
+- [06-01]: Timer chart renamed to "Horas por Dia" since backend data is per-date not per-project
 
 ### Pending Todos
 
@@ -136,6 +144,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T18:17:35Z
-Stopped at: Completed 04-03-PLAN.md (ALL PLANS COMPLETE)
-Resume file: .planning/phases/04-web-pwa/04-03-SUMMARY.md
+Last session: 2026-03-10T19:33:00Z
+Stopped at: Completed 06-01-PLAN.md (ALL PLANS COMPLETE)
+Resume file: .planning/phases/06-insights-web-fixes/06-01-SUMMARY.md
