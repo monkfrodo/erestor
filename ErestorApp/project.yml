@@ -49,6 +49,9 @@ targets:
   ErestorApp-iOS:
     type: application
     platform: iOS
+    dependencies:
+      - package: MarkdownUI
+      - package: HighlightSwift
     sources:
       - path: ErestorApp
         excludes:
