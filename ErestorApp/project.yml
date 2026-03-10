@@ -60,7 +60,6 @@ targets:
           - Services/BubbleWindowController.swift
           - Services/GlobalHotkey.swift
           - Services/ActionHandler.swift
-          - Views/ChatWebViewVC.swift
     info:
       path: ErestorApp/iOS/Info.plist
       properties:

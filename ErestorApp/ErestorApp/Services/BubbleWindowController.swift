@@ -14,18 +14,17 @@ class BubbleWindowController: ObservableObject {
 
     private(set) var bubblePanel: NSPanel?
     private var chatPanel: KeyablePanel?
-    private var contextPollTask: Task<Void, Never>?
     var chatService: ChatService?
     private var actionHandler: ActionHandler?
 
     // Notification badge on bubble
     private var notificationDot: NSView?
 
-    private var streamCancellable: AnyCancellable?
     private var actionsCancellable: AnyCancellable?
+    private var onlineCancellable: AnyCancellable?
     private let bubbleSize: CGFloat = 64
-    private let chatWidth: CGFloat = 320
-    private let chatHeight: CGFloat = 540
+    private let chatWidth: CGFloat = 288
+    private let chatHeight: CGFloat = 480
     private let margin: CGFloat = 12
 
     private var isDragging = false
@@ -33,7 +32,6 @@ class BubbleWindowController: ObservableObject {
     private var bubbleWatchdogTask: Task<Void, Never>?
 
     deinit {
-        contextPollTask?.cancel()
         bubbleWatchdogTask?.cancel()
     }
 
@@ -50,8 +48,7 @@ class BubbleWindowController: ObservableObject {
         self.actionHandler = actionHandler
         createBubblePanel()
         createChatPanel()
-        observeStreaming()
-        startContextPolling()
+        observeActions()
         startBubbleWatchdog()
         observePushMessages()
     }
@@ -85,7 +82,7 @@ class BubbleWindowController: ObservableObject {
         wrapper.wantsLayer = true
         wrapper.layer?.backgroundColor = .clear
 
-        // Pure AppKit bubble — no SwiftUI/NSHostingView to avoid focus stealing
+        // Pure AppKit bubble -- no SwiftUI/NSHostingView to avoid focus stealing
         let container = NSView(frame: NSRect(x: 0, y: 0, width: bubbleSize, height: bubbleSize))
         container.wantsLayer = true
         container.layer?.backgroundColor = NSColor(red: 0.16, green: 0.14, blue: 0.13, alpha: 0.85).cgColor
@@ -141,9 +138,7 @@ class BubbleWindowController: ObservableObject {
         panel.orderFront(nil)
     }
 
-    // MARK: - Chat Panel (SwiftUI ContextPanelView)
-
-    private var hostingView: NSHostingView<ContextPanelView>?
+    // MARK: - Chat Panel (SwiftUI ContextPanelView via NSHostingView)
 
     private func createChatPanel() {
         guard let chatService else { return }
@@ -161,25 +156,26 @@ class BubbleWindowController: ObservableObject {
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.hidesOnDeactivate = false
         panel.animationBehavior = .utilityWindow
-        panel.minSize = NSSize(width: 260, height: 400)
-        panel.maxSize = NSSize(width: 600, height: 900)
+        panel.minSize = NSSize(width: 288, height: 360)
+        panel.maxSize = NSSize(width: 288, height: 720)
         panel.isFloatingPanel = true
 
-        let panelView = ContextPanelView(
-            chatService: chatService,
-            onClose: { [weak self] in self?.hideChat() }
-        )
-        let hosting = NSHostingView(rootView: panelView)
-        hosting.frame = NSRect(x: 0, y: 0, width: chatWidth, height: chatHeight)
-        hosting.autoresizingMask = [.width, .height]
-        self.hostingView = hosting
+        // SwiftUI ContextPanelView embedded via NSHostingView
+        let panelView = ContextPanelView(chatService: chatService, onClose: { [weak self] in
+            self?.hideChat()
+        })
+        let hostingView = NSHostingView(rootView: panelView)
+        hostingView.frame = NSRect(x: 0, y: 0, width: chatWidth, height: chatHeight)
+        hostingView.autoresizingMask = [.width, .height]
 
-        panel.contentView = hosting
+        // Resize handle at bottom-right
+        let resizeHandle = ResizeHandleView(frame: NSRect(x: chatWidth - 20, y: 0, width: 20, height: 20))
+        resizeHandle.autoresizingMask = [.minXMargin, .maxYMargin]
+        hostingView.addSubview(resizeHandle)
+
+        panel.contentView = hostingView
         self.chatPanel = panel
     }
-
-    // Header is now managed by ContextPanelView (SwiftUI)
-    // Server online state is observed directly by ContextPanelView via ChatService
 
     // MARK: - Notification dot
 
@@ -204,21 +200,10 @@ class BubbleWindowController: ObservableObject {
         })
     }
 
-    // MARK: - Stream observation (push tokens to WebView)
+    // MARK: - Action observation
 
-    private func observeStreaming() {
+    private func observeActions() {
         guard let chatService else { return }
-
-        // SwiftUI ContextPanelView handles rendering via @ObservedObject.
-        // We only observe here for notification dot + action execution.
-        streamCancellable = chatService.$streamDelta
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] delta in
-                guard let self, let delta else { return }
-                if delta.kind == .finished && !self.isChatVisible {
-                    self.showNotificationDot()
-                }
-            }
 
         actionsCancellable = chatService.$actions
             .receive(on: DispatchQueue.main)
@@ -282,20 +267,6 @@ class BubbleWindowController: ObservableObject {
         }
     }
 
-    // Message rendering is handled by SwiftUI ContextPanelView via @ObservedObject chatService
-
-    // MARK: - Context polling (feeds WebView)
-
-    private func startContextPolling() {
-        contextPollTask = Task { [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 5_000_000_000) // 5s
-                guard let self else { break }
-                await self.chatService?.loadContext()
-            }
-        }
-    }
-
     // MARK: - Bubble watchdog (ensure bubble never disappears)
 
     private func startBubbleWatchdog() {
@@ -308,7 +279,7 @@ class BubbleWindowController: ObservableObject {
             self?.ensureBubbleVisible()
         }
 
-        // Periodic check every 5s — if bubble is not visible, bring it back
+        // Periodic check every 5s -- if bubble is not visible, bring it back
         bubbleWatchdogTask = Task { @MainActor [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 5_000_000_000)
@@ -364,7 +335,7 @@ class BubbleWindowController: ObservableObject {
 
         isChatVisible = true
 
-        // Focus panel — nonactivatingPanel can receive keys without stealing app focus
+        // Focus panel -- nonactivatingPanel can receive keys without stealing app focus
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
             guard let self, let chatPanel = self.chatPanel else { return }
             chatPanel.makeKey()
@@ -525,12 +496,12 @@ class KeyablePanel: NSPanel {
     override var canBecomeMain: Bool { false }
 
     override func keyDown(with event: NSEvent) {
-        // Escape → close chat
+        // Escape -> close chat
         if event.keyCode == 53 {
             BubbleWindowController.shared.hideChat()
             return
         }
-        // Cmd+K → clear conversation
+        // Cmd+K -> clear conversation
         if event.modifierFlags.contains(.command) && event.charactersIgnoringModifiers == "k" {
             Task { @MainActor in
                 await BubbleWindowController.shared.chatService?.clearHistory()
@@ -542,7 +513,7 @@ class KeyablePanel: NSPanel {
 
     override func resignKey() {
         super.resignKey()
-        // Close chat when clicking outside — but not if clicking the bubble (toggle handles that)
+        // Close chat when clicking outside -- but not if clicking the bubble (toggle handles that)
         DispatchQueue.main.async {
             let bubble = BubbleWindowController.shared
             guard bubble.isChatVisible else { return }

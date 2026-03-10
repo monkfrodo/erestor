@@ -74,24 +74,29 @@ struct ContextPanelView: View {
                     ForEach(chatService.activePolls) { poll in
                         PollCardView(
                             type: poll.pollType == "energy" ? .energy : .quality,
-                            question: poll.question
-                        ) { response in
-                            Task {
-                                await respondToPoll(pollId: poll.pollId, value: response)
-                            }
-                            chatService.activePolls.removeAll { $0.pollId == poll.pollId }
-                        }
+                            question: poll.question,
+                            onResponse: { response in
+                                Task {
+                                    await respondToPoll(pollId: poll.pollId, value: response)
+                                }
+                                chatService.activePolls.removeAll { $0.pollId == poll.pollId }
+                            },
+                            pollId: poll.pollId,
+                            options: poll.options.isEmpty ? nil : poll.options,
+                            expiresAt: poll.expiresAt
+                        )
                     }
 
                     ForEach(chatService.activeGates) { gate in
                         GateAlertView(
                             text: gate.text,
                             severity: gate.severity == "red" ? .red : .amber,
-                            actions: [
-                                GateAlertAction(label: "ignorar") {
+                            tasks: gate.tasks,
+                            onDismiss: {
+                                withAnimation(.easeInOut(duration: 0.2)) {
                                     chatService.activeGates.removeAll { $0.id == gate.id }
                                 }
-                            ]
+                            }
                         )
                     }
                 }

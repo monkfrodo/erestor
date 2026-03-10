@@ -34,19 +34,53 @@ struct GateAlertAction {
 struct GateAlertView: View {
     let text: String
     let severity: GateSeverity
-    let actions: [GateAlertAction]
+    var actions: [GateAlertAction] = []
+    var tasks: [String]? = nil
+    var onDismiss: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("erestor \u{00b7} gate")
-                .font(DS.mono(9))
-                .foregroundColor(DS.dim)
-                .padding(.bottom, 4)
+            HStack {
+                Text("erestor \u{00b7} gate")
+                    .font(DS.mono(9))
+                    .foregroundColor(DS.dim)
+
+                Spacer()
+
+                if let onDismiss {
+                    Button(action: onDismiss) {
+                        Text("\u{00d7}")
+                            .font(.system(size: 12))
+                            .foregroundColor(DS.muted)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.bottom, 4)
 
             Text(text)
                 .font(DS.body(12))
                 .foregroundColor(severity.textColor)
                 .lineSpacing(1.5)
+
+            // Task list (from GateSSEEvent)
+            if let tasks, !tasks.isEmpty {
+                VStack(alignment: .leading, spacing: 3) {
+                    ForEach(Array(tasks.enumerated()), id: \.offset) { _, task in
+                        HStack(alignment: .top, spacing: 6) {
+                            Circle()
+                                .fill(severity.textColor.opacity(0.6))
+                                .frame(width: 4, height: 4)
+                                .padding(.top, 5)
+                            Text(task)
+                                .font(DS.body(11))
+                                .foregroundColor(severity.textColor.opacity(0.8))
+                                .lineSpacing(1.2)
+                        }
+                    }
+                }
+                .padding(.top, 6)
+            }
 
             if !actions.isEmpty {
                 HStack(spacing: 8) {
