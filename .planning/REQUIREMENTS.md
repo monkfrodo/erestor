@@ -64,7 +64,7 @@
 
 ### Notifications
 
-- [ ] **NOTF-01**: Native macOS notifications with inline actions (polls, quick responses)
+- [x] **NOTF-01**: Native macOS notifications with inline actions (polls, quick responses)
 - [ ] **NOTF-02**: iOS push notifications via APNs with inline actions
 - [ ] **NOTF-03**: Web push notifications via Web Push API
 
@@ -127,7 +127,7 @@
 | DATA-04 | Phase 2 | Complete |
 | SYNT-01 | Phase 2 | Complete |
 | SYNT-02 | Phase 2 | Complete |
-| NOTF-01 | Phase 2 | Pending |
+| NOTF-01 | Phase 2 | Complete |
 | IOS-01 | Phase 3 | Pending |
 | IOS-02 | Phase 3 | Pending |
 | IOS-03 | Phase 3 | Pending |

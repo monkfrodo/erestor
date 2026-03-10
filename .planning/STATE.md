@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-03-10T11:02:56Z"
-last_activity: 2026-03-10 -- Plan 02-04 executed (panel restructure, collapsible tasks, WKWebView removal)
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-03-10T11:13:00Z"
+last_activity: 2026-03-10 -- Plan 02-05 executed (macOS notifications + backend poll scheduling)
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 11
-  completed_plans: 6
-  percent: 55
+  completed_plans: 7
+  percent: 64
 ---
 
 # Project State
@@ -26,17 +26,17 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 2 of 4 (macOS Experience)
-Plan: 4 of 6 in current phase
+Plan: 5 of 6 in current phase
 Status: Executing
-Last activity: 2026-03-10 -- Plan 02-04 executed (panel restructure, collapsible tasks, WKWebView removal)
+Last activity: 2026-03-10 -- Plan 02-05 executed (macOS notifications + backend poll scheduling)
 
-Progress: [█████░░░░░] 55%
+Progress: [██████░░░░] 64%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 4.7 min
+- Total plans completed: 7
+- Average duration: 4.6 min
 - Total execution time: 0.5 hours
 
 **By Phase:**
@@ -44,10 +44,10 @@ Progress: [█████░░░░░] 55%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-api-foundation | 2/2 | 7 min | 3.5 min |
-| 02-macos-experience | 4/4 | 21 min | 5.3 min |
+| 02-macos-experience | 5/5 | 25 min | 5.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (4 min), 02-01 (5 min), 02-02 (6 min), 02-03 (5 min), 02-04 (5 min)
+- Last 5 plans: 02-01 (5 min), 02-02 (6 min), 02-03 (5 min), 02-04 (5 min), 02-05 (4 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -88,6 +88,11 @@ Recent decisions affecting current work:
 - [02-04]: PollCardView backward-compatible signature with optional SSE fields (pollId, options, expiresAt)
 - [02-04]: BubbleWindowController uses NSHostingView(ContextPanelView) replacing WKWebView entirely
 - [02-04]: Context polling removed from BubbleWindowController (SSE via ChatService handles updates)
+- [02-05]: Notification action identifiers use ENERGY_N and QUALITY_opt prefix format for reliable parsing
+- [02-05]: Gate alerts always post native notifications regardless of panel visibility
+- [02-05]: Poll scheduler as asyncio.create_task alongside SSE generator, cancelled on disconnect
+- [02-05]: Energy polls require ACTIVE presence + work hours (8-21h) to trigger
+- [02-05]: 22h daily synthesis triggered by scheduler, stored in daily_signals, pushed via SSE
 
 ### Pending Todos
 
@@ -100,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T11:02:56Z
-Stopped at: Completed 02-04-PLAN.md
-Resume file: .planning/phases/02-macos-experience/02-05-PLAN.md
+Last session: 2026-03-10T11:13:00Z
+Stopped at: Completed 02-05-PLAN.md
+Resume file: .planning/phases/02-macos-experience/02-06-PLAN.md
