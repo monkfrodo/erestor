@@ -2,17 +2,15 @@
 
 ## What This Is
 
-Erestor is Kevin's personal intelligence assistant — a cross-platform system (macOS, iOS, web) that passively and actively collects data about his day (calendar, energy, focus quality, tasks, habits) and returns actionable insights, proactive alerts, and rich daily syntheses. It replaces the current Telegram bot with a purpose-built interface that functions as a contextual panel always present across devices.
+Erestor is Kevin's personal intelligence assistant — a cross-platform system (macOS, iOS, web) that passively and actively collects data about his day (calendar, energy, focus quality, tasks, habits) and returns actionable insights, proactive alerts, and rich daily syntheses. It replaced the Telegram bot with purpose-built native interfaces on all three platforms.
 
 ## Core Value
 
-Erestor must surface the right context at the right moment — showing what's happening now, what's next, and what patterns matter — so Kevin can make better decisions about how he spends his time and energy.
+Surface the right context at the right moment — showing what's happening now, what's next, and what patterns matter — so Kevin can make better decisions about how he spends his time and energy.
 
 ## Requirements
 
 ### Validated
-
-<!-- Capabilities already working in the current system -->
 
 - ✓ Google Calendar integration — reads events, creates events via natural language — existing
 - ✓ Daily briefing generation — morning summary with agenda, tasks, context — existing
@@ -24,64 +22,66 @@ Erestor must surface the right context at the right moment — showing what's ha
 - ✓ Daily synthesis — end-of-day analysis crossing data points — existing
 - ✓ Reminder system — time-based notifications — existing
 - ✓ Timer tracking — track time spent on projects/tasks — existing
+- ✓ FastAPI backend with 12 REST + SSE endpoints (auth, context, chat, calendar, events, polls, synthesis, insights, timer, history, device, webpush) — v1.0
+- ✓ macOS floating panel with real-time SSE context, streaming chat, polls, gates, native notifications — v1.0
+- ✓ iOS app with TabView (Painel, Chat, Agenda, Insights), poll/gate sheets, APNs push — v1.0
+- ✓ Next.js PWA with responsive layout, streaming chat, web push, offline manifest — v1.0
+- ✓ Historical data migration (mood/energy, memory, logs) from Telegram to SQLite — v1.0
+- ✓ Cross-platform notifications (macOS native, iOS APNs, Web Push) — v1.0
 
 ### Active
 
-<!-- New capabilities for the rebuilt Erestor -->
-
-- [ ] Cross-platform contextual panel (macOS, iOS, web) with event, timer, tasks, chat
-- [ ] Inline energy check-ins (1-5 scale) at intelligent moments
-- [ ] Block quality assessment at end of calendar blocks (perdi/meh/ok/flow)
-- [ ] Proactive gate alerts (e.g., "block ends in 15 min, task X still open")
-- [ ] Native notifications with inline actions (macOS + iOS)
-- [ ] Chat interface with natural language commands (create events, set reminders, ask questions)
-- [ ] Timer system visible in panel with project/task labeling
-- [ ] Evolved daily synthesis — crossing polls, timers, blocks, mood throughout the day
-- [ ] Migration of historical data from Telegram-based system
-- [ ] Day agenda view (full schedule visible on mobile)
-- [ ] Real-time context awareness — panel updates as calendar progresses
-- [ ] Backend API replacing Telegram as interface layer
+(None — next milestone requirements TBD via `/gsd:new-milestone`)
 
 ### Out of Scope
 
-- Telegram bot interface — being fully replaced by native platform
+- Telegram bot interface — fully replaced by native platforms
 - Multi-user support — Erestor is Kevin's personal tool only
-- Third-party app integrations beyond current set (GCal, Notion, ActivityWatch) — can expand later
+- Voice interface — text-based interaction only
 - Offline-first architecture — requires connection to backend/Claude
-- Voice interface — text-based interaction only for v1
+- Android app — Kevin uses Apple ecosystem only
+- Gamification (streaks, points) — anti-pattern for wellbeing tools
+- Full task management — shows tasks, doesn't manage them
 
 ## Context
 
-Erestor has been running as a Telegram bot on DigitalOcean (Python + PM2) for months. The bot works but the Telegram interface is limiting — no contextual panel, no inline polls, no proactive UI, no timer visibility. The system's intelligence (briefing, synthesis, memory, auto-sync) is proven and valuable; the interface is the bottleneck.
+**Current State (post v1.0):**
+- Backend: FastAPI on DigitalOcean (12 routers, Python + PM2)
+- macOS: Swift/SwiftUI app with floating bubble, Carbon hotkey, MarkdownUI chat
+- iOS: Swift/SwiftUI app with 4-tab layout, Swift Charts, APNs
+- Web: Next.js 15 PWA with Zustand, SSE, react-markdown
+- Data: SQLite (erestor_events.db) with poll_responses, daily_signals, memory_people, memory_context, event_log
+- Design: Vesper Dark theme, IBM Plex Mono + Inter fonts
 
-The existing codebase includes:
-- **Bot/backend** (`~/claude-sync/produtividade/`): Python scripts for Telegram bot, briefing, log-builder, auto-sync, memory system, hooks
-- **Desktop app** (`~/projetos/erestor/ErestorApp/`): Swift/SwiftUI macOS app with floating bubble + chat panel (partially built, needs rethinking)
-- **Prototypes**: HTML prototype (`prototipo-painel.html`) defining the target UI/UX for all platforms
-
-A detailed prototype exists showing every state: work mode with timer, energy polls, block quality check, proactive gate alerts, chat conversation, mobile views, and native notifications for both macOS and iOS.
-
-Design language: dark theme (Vesper-inspired), IBM Plex Mono + Inter fonts, green/blue/amber/red accent colors on dark surface.
+**Known Tech Debt:**
+- Human visual verification pending (15 items across macOS/iOS/Web)
+- SYNT-02 and API-05 have no client UI (backend-only endpoints)
+- iOS agenda only shows today's events (no date-parameterized endpoint)
+- ErestorApp.swift has dead code `/v1/push/respond` path
+- Nyquist validation not completed for any phase
 
 ## Constraints
 
-- **Platform**: Must work on macOS, iOS, and web browsers
-- **Backend**: DigitalOcean server (existing infrastructure) — keep what works, refactor what doesn't
-- **LLM**: Claude API as the intelligence layer
-- **Data migration**: Historical data from Telegram system must be migrated
-- **Single user**: Built exclusively for Kevin — no auth complexity needed beyond basic security
-- **Design**: Must follow the established prototype visual language (dark, minimal, contextual)
+- **Platform**: macOS, iOS, web browsers
+- **Backend**: DigitalOcean server (Python + PM2 + Nginx + SSL)
+- **LLM**: Claude API (Anthropic SDK for streaming)
+- **Single user**: Built exclusively for Kevin
+- **Design**: Vesper Dark theme (dark, minimal, contextual)
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Kill Telegram, build own interface | Full control over UX, enable contextual panels, inline polls, native notifications | — Pending |
-| Cross-platform (macOS + iOS + web) | Kevin uses all three daily | — Pending |
-| Keep Claude as LLM | Already integrated, proven quality for personal assistant use case | — Pending |
-| Keep backend logic, replace interface layer | Briefing, sync, memory logic works — only Telegram interface is the bottleneck | — Pending |
-| Migrate historical data | Months of mood, energy, logs have pattern value | — Pending |
-| Evolved synthesis | Cross more data points for richer daily analysis | — Pending |
+| Kill Telegram, build own interface | Full control over UX, contextual panels, inline polls, native notifications | ✓ Good — all 3 platforms shipped |
+| Cross-platform (macOS + iOS + web) | Kevin uses all three daily | ✓ Good — consistent experience |
+| FastAPI + SSE for real-time | Lightweight, Python ecosystem, token streaming | ✓ Good — 12 routers, sub-second updates |
+| Anthropic SDK for streaming chat | Direct token-by-token SSE, no polling | ✓ Good — smooth UX on all platforms |
+| Lazy imports in Python handlers | Avoid Python 3.9 PEP 604 issues at module level | ✓ Good — workaround for legacy codebase |
+| NSHostingView over WKWebView | Native SwiftUI rendering, no web bridge complexity | ✓ Good — eliminated WKWebView entirely |
+| MarkdownUI for chat rendering | Native Swift markdown, syntax highlighting | ✓ Good — streaming + formatted output |
+| Zustand for web state | Lightweight, no boilerplate, works with SSE | ✓ Good — clean store pattern |
+| SQLite for poll/signal data | Simple, no external DB needed, collocated with backend | ✓ Good — migration script works cleanly |
+| ErestorConfig path constants | Centralize all /v1/ paths, prevent legacy /api/ drift | ✓ Good — zero legacy paths after Phase 5 |
 
 ---
-*Last updated: 2026-03-09 after initialization*
+*Last updated: 2026-03-10 after v1.0 milestone*
