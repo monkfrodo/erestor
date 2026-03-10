@@ -327,7 +327,7 @@ struct iOS_InsightsView: View {
         isLoading = true
         loadError = false
 
-        guard let url = ErestorConfig.url(for: "/v1/insights/chart-data?period=\(selectedPeriod)") else {
+        guard let url = ErestorConfig.url(for: "/api/insights/chart-data?period=\(selectedPeriod)") else {
             isLoading = false
             loadError = true
             return
