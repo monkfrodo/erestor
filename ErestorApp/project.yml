@@ -78,8 +78,7 @@ targets:
         SWIFT_VERSION: "5.9"
         CODE_SIGN_ENTITLEMENTS: ErestorApp/iOS/ErestorApp_iOS.entitlements
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
-        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: U4D4M9P273
     entitlements:
       path: ErestorApp/iOS/ErestorApp_iOS.entitlements
-      properties:
-        aps-environment: development

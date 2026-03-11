@@ -6,7 +6,7 @@ enum ErestorConfig {
     static let apiBaseURL = "https://erestor-api.kevineger.com.br"
     static let apiToken = "gzC3a3cvg15-IgU3lAu0YuJeHCxc87EOTZJ4sikSuMU"
 
-    // MARK: - v1 API Paths
+    // MARK: - API Paths
 
     static let eventsStreamPath = "/api/events/stream"
     static let chatStreamPath = "/api/chat/stream"
